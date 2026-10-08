@@ -8,6 +8,7 @@ from app.query.rules import (
     GenerationError,
     SqlRejected,
     check_question,
+    explain_execution_error,
     parse_generation,
     sanitize_value,
     validate_sql,
@@ -174,3 +175,20 @@ def test_qry_r014_bytes_become_placeholder() -> None:
 def test_qry_r014_plain_values_are_kept(value: object) -> None:
     """QRY-R014 바이트가 아닌 값은 바꾸지 않는다 (NFR-002)."""
     assert sanitize_value(value) == value
+
+
+# --- QRY-R015 실행 오류 안내 -----------------------------------------------
+
+
+def test_qry_r015_missing_alias_gets_join_hint() -> None:
+    """QRY-R015 별칭 없이 쓴 열이면 그 별칭의 표를 JOIN 했는지 확인하라고 덧붙인다."""
+    hint = explain_execution_error("no such column: o.ordered_on")
+    assert hint.startswith("no such column: o.ordered_on")
+    assert "'o'" in hint
+    assert "JOIN" in hint
+
+
+@pytest.mark.parametrize("message", ["no such column: nope", 'near "FORM": syntax error'])
+def test_qry_r015_other_errors_are_kept_as_is(message: str) -> None:
+    """QRY-R015 별칭 열 오류가 아니면 손대지 않는다."""
+    assert explain_execution_error(message) == message
