@@ -112,6 +112,39 @@ def test_qry_r004_table_names_are_case_insensitive() -> None:
     assert "FROM" in validate("SELECT * FROM Stores")
 
 
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT * FROM pragma_database_list()",
+        "SELECT * FROM pragma_table_info('orders')",
+        "SELECT name FROM stores JOIN pragma_table_list() AS t ON 1 = 1",
+    ],
+)
+def test_qry_r004_table_valued_function_is_rejected(sql: str) -> None:
+    """QRY-R004 표 값 함수는 이름 검사를 피해 내부 정보를 낸다. 언제나 거부한다."""
+    with pytest.raises(SqlRejected):
+        validate(sql)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "WITH sqlite_master AS (SELECT 1) SELECT name FROM main.sqlite_master",
+        "WITH dbstat AS (SELECT 1) SELECT * FROM main.dbstat",
+        "WITH t AS (SELECT 1) SELECT * FROM temp.sqlite_temp_master",
+    ],
+)
+def test_qry_r004_cte_cannot_mask_qualified_internal_table(sql: str) -> None:
+    """QRY-R004 CTE 이름으로 가려도 스키마를 붙인 내부 표는 거부한다."""
+    with pytest.raises(SqlRejected):
+        validate(sql)
+
+
+def test_qry_r004_qualified_allowed_table_is_accepted() -> None:
+    """QRY-R004 스키마를 붙여도 실제 허용 표면 받는다."""
+    assert validate("SELECT store_id FROM main.stores") == "SELECT store_id FROM main.stores LIMIT 200"
+
 # --- QRY-R005 LIMIT 보정 --------------------------------------------------
 
 
