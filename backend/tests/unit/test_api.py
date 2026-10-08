@@ -9,6 +9,7 @@ import pytest
 
 from app.config import Settings
 from app.main import create_app
+from app.query.catalog import EXAMPLE_QUESTIONS
 from app.query.ports import GeneratorUnavailable
 from tests.fakes import FakeDatabase, ScriptedGenerator, sql_json
 
@@ -62,20 +63,24 @@ async def test_qry_r012_failure_stream_ends_with_failed() -> None:
         response = await client.post("/api/queries", json={"question": "지역"})
     events = parse_sse(response.text)
     assert [name for name, _ in events] == ["failed"]
-    assert "모델 서버" in str(events[0][1]["reason"])
+    assert events[0][1]["reason"] == "connection refused"
 
 
-async def test_schema_lists_tables_with_descriptions() -> None:
-    """FR-006 표와 열을 설명과 함께 돌려준다."""
+async def test_qry_r017_schema_keeps_database_order_with_catalog_descriptions() -> None:
+    """QRY-R017 DB 의 표 · 열 순서 그대로, 카탈로그 설명을 붙이고 없으면 빈 문자열이다."""
     async with client_for(ScriptedGenerator([])) as client:
         response = await client.get("/api/schema")
-    tables = {t["name"]: t for t in response.json()["tables"]}
-    assert set(tables) == {"stores", "orders"}
-    assert tables["stores"]["description"]
+    tables = response.json()["tables"]
+    assert [t["name"] for t in tables] == ["stores", "orders"]
+    stores = tables[0]
+    assert stores["description"] == "매장"
+    assert [c["name"] for c in stores["columns"]] == ["store_id", "name", "region"]
+    assert stores["columns"][0]["description"] == ""
+    assert stores["columns"][2]["description"].startswith("지역")
 
 
-async def test_examples_are_provided() -> None:
-    """FR-007 예시 질문을 돌려준다."""
+async def test_examples_come_from_catalog() -> None:
+    """FR-007 카탈로그의 예시 질문을 그대로 돌려준다."""
     async with client_for(ScriptedGenerator([])) as client:
         response = await client.get("/api/examples")
-    assert len(response.json()["questions"]) >= 3
+    assert response.json()["questions"] == list(EXAMPLE_QUESTIONS)

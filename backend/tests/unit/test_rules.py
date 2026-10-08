@@ -18,7 +18,7 @@ ALLOWED = frozenset({"stores", "products", "orders", "order_items"})
 
 
 def validate(sql: str, row_limit: int = 200) -> str:
-    return validate_sql(sql, allowed_tables=ALLOWED, row_limit=row_limit).sql
+    return validate_sql(sql, allowed_tables=ALLOWED, row_limit=row_limit)
 
 
 def reason_of(sql: str) -> str:
@@ -147,39 +147,33 @@ def test_qry_r004_cte_cannot_mask_qualified_internal_table(sql: str) -> None:
 
 def test_qry_r004_qualified_allowed_table_is_accepted() -> None:
     """QRY-R004 스키마를 붙여도 실제 허용 표면 받는다."""
-    assert (
-        validate("SELECT store_id FROM main.stores") == "SELECT store_id FROM main.stores LIMIT 200"
+    assert validate("SELECT store_id FROM main.stores") == (
+        "SELECT store_id FROM main.stores LIMIT 201"
     )
 
 
 # --- QRY-R005 LIMIT 보정 --------------------------------------------------
 
 
-def test_qry_r005_missing_limit_is_added() -> None:
-    """QRY-R005 바깥 LIMIT 이 없으면 상한을 붙이고, 붙였다고 알린다."""
-    result = validate_sql("SELECT * FROM stores", allowed_tables=ALLOWED, row_limit=200)
-    assert result.sql.endswith("LIMIT 200")
-    assert result.capped is True
+def test_qry_r005_missing_limit_gets_one_more_than_cap() -> None:
+    """QRY-R005 바깥 LIMIT 이 없으면 상한+1 을 붙인다. 한 행 더 가져와야 잘렸는지 안다."""
+    assert validate("SELECT * FROM stores") == "SELECT * FROM stores LIMIT 201"
 
 
 def test_qry_r005_large_limit_is_reduced() -> None:
-    """QRY-R005 상한보다 큰 LIMIT 은 상한으로 줄인다."""
-    result = validate_sql("SELECT * FROM stores LIMIT 500", allowed_tables=ALLOWED, row_limit=200)
-    assert result.sql.endswith("LIMIT 200")
-    assert result.capped is True
+    """QRY-R005 상한보다 큰 LIMIT 은 상한+1 로 줄인다."""
+    assert validate("SELECT * FROM stores LIMIT 500") == "SELECT * FROM stores LIMIT 201"
 
 
 def test_qry_r005_small_limit_is_kept() -> None:
-    """QRY-R005 상한보다 작은 LIMIT 은 그대로 둔다."""
-    result = validate_sql("SELECT * FROM stores LIMIT 10", allowed_tables=ALLOWED, row_limit=200)
-    assert result.sql.endswith("LIMIT 10")
-    assert result.capped is False
+    """QRY-R005 상한 이하의 LIMIT 은 그대로 둔다."""
+    assert validate("SELECT * FROM stores LIMIT 10") == "SELECT * FROM stores LIMIT 10"
 
 
 def test_qry_r005_inner_limit_does_not_count_as_outer() -> None:
     """QRY-R005 서브쿼리 안의 LIMIT 은 바깥 LIMIT 이 아니다."""
     sql = "SELECT * FROM (SELECT * FROM stores LIMIT 5000) AS s"
-    assert validate(sql).endswith("LIMIT 200")
+    assert validate(sql) == "SELECT * FROM (SELECT * FROM stores LIMIT 5000) AS s LIMIT 201"
 
 
 # --- QRY-R010 모델 출력 해석 ----------------------------------------------

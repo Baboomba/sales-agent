@@ -115,6 +115,17 @@ async def test_qry_r013_unreachable_generator_fails_without_retry() -> None:
     assert kinds(events) == ["failed"]
 
 
+async def test_qry_r013_failure_reason_is_the_generators_message() -> None:
+    """QRY-R013 장애 종류를 알 수 있게, 생성기가 적은 사유를 그대로 알린다."""
+    reason = "ZZZ 모델 응답이 15초를 넘었습니다"
+    events = await collect(
+        SqlAgent(ScriptedGenerator([GeneratorUnavailable(reason)]), FakeDatabase(), SETTINGS)
+    )
+    failed = events[-1]
+    assert isinstance(failed, Failed)
+    assert failed.reason == reason
+
+
 async def test_qry_r002_unclosed_quote_is_regenerated() -> None:
     """QRY-R002 닫히지 않은 따옴표는 검증 거부로 다뤄 다시 생성한다. 스트림이 끊기지 않는다."""
     generator = ScriptedGenerator([sql_json("SELECT 'abc"), sql_json(GOOD_SQL)])
@@ -141,21 +152,34 @@ async def test_qry_r005_validated_sql_is_what_gets_executed() -> None:
 
     validated = next(e for e in events if isinstance(e, Validated))
     assert database.executed == [validated.sql]
-    assert validated.sql.endswith("LIMIT 200")
+    assert validated.sql == "SELECT region FROM stores LIMIT 201"
 
 
-async def test_qry_r005_truncated_when_capped_and_full() -> None:
-    """QRY-R005 상한을 붙였고 상한만큼 찼으면 잘렸다고 알린다."""
-    rows = tuple((i,) for i in range(5))
+async def run_with_rows(count: int, row_limit: int) -> Done:
+    rows = tuple((i,) for i in range(count))
     database = FakeDatabase(default=QueryResult(columns=("n",), rows=rows))
     agent = SqlAgent(
         ScriptedGenerator([sql_json("SELECT store_id FROM stores")]),
         database,
-        AgentSettings(max_attempts=3, row_limit=5),
+        AgentSettings(max_attempts=3, row_limit=row_limit),
     )
     done = (await collect(agent))[-1]
     assert isinstance(done, Done)
+    return done
+
+
+async def test_qry_r005_more_than_cap_is_truncated_to_cap() -> None:
+    """QRY-R005 상한보다 많은 행이 오면 상한만큼만 돌려주고 잘렸다고 알린다."""
+    done = await run_with_rows(count=6, row_limit=5)
+    assert done.rows == tuple((i,) for i in range(5))
     assert done.truncated is True
+
+
+async def test_qry_r005_exactly_cap_is_not_truncated() -> None:
+    """QRY-R005 정확히 상한만큼이면 잘린 것이 아니다."""
+    done = await run_with_rows(count=5, row_limit=5)
+    assert len(done.rows) == 5
+    assert done.truncated is False
 
 
 async def test_qry_r014_bytes_in_result_are_replaced() -> None:
