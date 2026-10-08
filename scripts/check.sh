@@ -51,7 +51,7 @@ check_frontend() {
 
 # git 훅이 꺼져 있으면 알린다 — 사람이 직접 커밋할 때 본 가지 보호 · 검사가 돌지 않는다.
 if [[ "$(git -C "$root" config core.hooksPath || true)" != ".githooks" ]]; then
-  printf '\033[33m⚠ git 훅이 꺼져 있습니다 — git config core.hooksPath .githooks\033[0m\n'
+  printf '\033[33m⚠ git 훅이 꺼져 있습니다 — scripts/bootstrap.sh 를 돌리거나 git config core.hooksPath .githooks\033[0m\n'
 fi
 
 case "$target" in
