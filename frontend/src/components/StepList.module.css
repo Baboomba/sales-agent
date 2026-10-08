@@ -1,0 +1,43 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.list li {
+  padding: 8px 12px;
+  border-left: 3px solid var(--border);
+  background: var(--surface);
+  border-radius: 0 6px 6px 0;
+}
+
+.generated,
+.validated {
+  border-left-color: var(--accent) !important;
+}
+
+.done {
+  border-left-color: var(--ok) !important;
+}
+
+.rejected {
+  border-left-color: var(--warn) !important;
+}
+
+.failed {
+  border-left-color: var(--danger) !important;
+}
+
+.pending {
+  color: var(--muted);
+}
+
+.reason {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
