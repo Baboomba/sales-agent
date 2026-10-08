@@ -4,7 +4,7 @@
 # ordered: false — 행 순서는 보지 않는다
 #
 # 문항을 빼서 점수를 올리지 않는다. 바꾸면 이유를 docs/eval/README.md 에 적는다.
-# 예시 질문(app/query/catalog.py 의 FEW_SHOT)과 겹치는 문항을 두지 않는다.
+# 예시 질의(app/query/model/terms.py 의 TERMS.example_queries)와 겹치는 문항을 두지 않는다.
 
 - id: E01
   type: 매출 정의

@@ -72,33 +72,7 @@ pytest_add_cli_args_test_selection = ["tests/query/", "tests/integration/test_sq
 root_package = "app"
 include_external_packages = true
 
-[[tool.importlinter.contracts]]
-name = "질의 도메인 계층 — 안쪽으로만 의존한다"
-type = "layers"
-layers = [
-    "app.query_legacy.api",
-    "app.query_legacy.graph",
-    "app.query_legacy.prompt | app.query_legacy.rules",
-    "app.query_legacy.ports",
-    "app.query_legacy.model",
-]
-containers = []
-exhaustive = false
-
-[[tool.importlinter.contracts]]
-name = "순수 계층은 프레임워크와 어댑터를 모른다"
-type = "forbidden"
-source_modules = ["app.query_legacy.model", "app.query_legacy.rules", "app.query_legacy.prompt", "app.query_legacy.ports"]
-forbidden_modules = ["fastapi", "langgraph", "langchain_ollama", "langchain_core", "app.query_legacy.adapters", "app.main"]
-allow_indirect_imports = true
-
-[[tool.importlinter.contracts]]
-name = "어댑터는 조립 루트만 안다"
-type = "forbidden"
-source_modules = ["app.query_legacy.api", "app.query_legacy.graph"]
-forbidden_modules = ["app.query_legacy.adapters", "langchain_ollama"]
-
-# 아래는 새 계층의 계약이다 (docs/convention/code-architecture.md 3절).
+# 계약은 docs/convention/code-architecture.md 3절의 표와 같다.
 [[tool.importlinter.contracts]]
 name = "계층 — api → usecase → rules · dependency → model 로만 의존한다"
 type = "layers"
