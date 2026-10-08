@@ -25,6 +25,17 @@ def test_qry_r015_missing_alias_adds_guidance_naming_the_alias() -> None:
     assert "JOIN" in reason.upper()  # 설계서 4절이 정한 「JOIN 안내」. 대소문자는 묻지 않는다
 
 
+def test_qry_r015_missing_alias_also_asks_to_check_the_column_name() -> None:
+    """QRY-R015 열 이름만 틀려도 SQLite 는 같은 오류를 내므로, 열 이름 안내도 함께 붙인다 (#47).
+
+    「열 이름」은 설계서 4절이 정한 안내의 낱말이고, 넣은 세부에는 없다.
+    """
+    failure = ExecutionFailure(
+        ExecutionFailureKind.MISSING_ALIAS, "zzz unknown reference", alias="zq"
+    )
+    assert "열 이름" in execution_failure_reason(failure, LIMITS)
+
+
 def test_qry_r015_other_failure_is_passed_on_as_it_is() -> None:
     """QRY-R015 다른 실행 실패는 그대로다 — 안내를 붙이지 않는다."""
     failure = ExecutionFailure(ExecutionFailureKind.REFUSED, DETAIL)
