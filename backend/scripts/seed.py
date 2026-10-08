@@ -108,10 +108,10 @@ def _pick_items(rng: random.Random, month: int) -> list[tuple[int, int, int]]:
     """한 주문의 (product_id, quantity, unit_price) 목록."""
     weights = [_category_weight(cat, month) for _, cat, _ in PRODUCTS]
     count = rng.choices([1, 2, 3, 4], weights=[0.25, 0.4, 0.25, 0.1])[0]
-    product_ids = set()
+    product_ids: set[int] = set()
     while len(product_ids) < count:
         product_ids.add(rng.choices(range(1, len(PRODUCTS) + 1), weights=weights)[0])
-    items = []
+    items: list[tuple[int, int, int]] = []
     for product_id in sorted(product_ids):
         list_price = PRODUCTS[product_id - 1][2]
         # 열에 하나 꼴로 10% 할인. 매출을 정가로 셈하면 틀리게 만드는 장치다.

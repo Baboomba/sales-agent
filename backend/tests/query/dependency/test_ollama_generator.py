@@ -206,3 +206,38 @@ async def test_prompt_does_not_print_a_missing_reason() -> None:
     """
     _, model = await generate(['{"sql": "SELECT 1"}'], last_reason=None)
     assert "None" not in model.prompts[0]
+
+
+# --- DAT-R001 ~ R003 데이터 정의가 프롬프트에 실린다 ---------------------------
+
+
+async def prompt_with_real_terms() -> str:
+    """실제 용어(TERMS)로 만든 프롬프트. 정의 문구가 바뀌면 여기서 걸린다."""
+    model = ScriptedModel(['{"sql": "SELECT 1"}'])
+    await OllamaSqlGenerator(model, timeout_seconds=5).generate(
+        Question("zzz 질문"), TABLES, TERMS, last_reason=None
+    )
+    return model.prompts[0]
+
+
+async def test_dat_r001_prompt_counts_revenue_with_the_sale_price() -> None:
+    """DAT-R001 매출은 판매 단가 × 수량의 합이고, 정가로 세지 말라고 적힌다."""
+    prompt = await prompt_with_real_terms()
+    assert "SUM(order_items.quantity * order_items.unit_price)" in prompt
+    assert "products.unit_price(정가)로 매출을 계산하지 않는다" in prompt
+
+
+async def test_dat_r002_prompt_counts_orders_by_distinct_order_id() -> None:
+    """DAT-R002 주문 건수는 주문 번호를 겹치지 않게 센 수이고, 한 건당 평균은 매출 합을 그 수로
+    나눈 것이다."""
+    prompt = await prompt_with_real_terms()
+    assert "COUNT(DISTINCT orders.order_id)" in prompt
+    assert "주문 한 건당 평균은 매출 합 / 주문 건수" in prompt
+
+
+async def test_dat_r003_prompt_warns_that_strftime_gives_strings() -> None:
+    """DAT-R003 strftime 결과가 문자열이라는 주의와 '%m' · '%w' 의 값 범위가 적힌다."""
+    prompt = await prompt_with_real_terms()
+    assert "strftime 결과는 문자열이다" in prompt
+    assert "'01'~'12'" in prompt
+    assert "'0'(일)~'6'(토)" in prompt
