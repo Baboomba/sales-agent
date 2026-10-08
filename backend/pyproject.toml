@@ -59,11 +59,11 @@ include_external_packages = true
 name = "질의 도메인 계층 — 안쪽으로만 의존한다"
 type = "layers"
 layers = [
-    "app.query.api",
-    "app.query.graph",
-    "app.query.prompt | app.query.rules",
-    "app.query.ports",
-    "app.query.model",
+    "app.query_legacy.api",
+    "app.query_legacy.graph",
+    "app.query_legacy.prompt | app.query_legacy.rules",
+    "app.query_legacy.ports",
+    "app.query_legacy.model",
 ]
 containers = []
 exhaustive = false
@@ -71,12 +71,12 @@ exhaustive = false
 [[tool.importlinter.contracts]]
 name = "순수 계층은 프레임워크와 어댑터를 모른다"
 type = "forbidden"
-source_modules = ["app.query.model", "app.query.rules", "app.query.prompt", "app.query.ports"]
-forbidden_modules = ["fastapi", "langgraph", "langchain_ollama", "langchain_core", "app.query.adapters", "app.main"]
+source_modules = ["app.query_legacy.model", "app.query_legacy.rules", "app.query_legacy.prompt", "app.query_legacy.ports"]
+forbidden_modules = ["fastapi", "langgraph", "langchain_ollama", "langchain_core", "app.query_legacy.adapters", "app.main"]
 allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "어댑터는 조립 루트만 안다"
 type = "forbidden"
-source_modules = ["app.query.api", "app.query.graph"]
-forbidden_modules = ["app.query.adapters", "langchain_ollama"]
+source_modules = ["app.query_legacy.api", "app.query_legacy.graph"]
+forbidden_modules = ["app.query_legacy.adapters", "langchain_ollama"]

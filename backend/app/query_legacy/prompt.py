@@ -6,14 +6,14 @@
 
 from __future__ import annotations
 
-from app.query.catalog import (
+from app.query_legacy.catalog import (
     COLUMN_DESCRIPTIONS,
     FEW_SHOT,
     ORDER_COUNT_DEFINITION,
     REVENUE_DEFINITION,
     TABLE_DESCRIPTIONS,
 )
-from app.query.model import Table
+from app.query_legacy.model import Table
 
 INSTRUCTIONS = f"""너는 SQLite SQL 작성기다. 질문에 답하는 SELECT 문 하나를 만든다.
 

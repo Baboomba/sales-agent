@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.config import Settings
-from app.query.catalog import EXAMPLE_QUESTIONS, FEW_SHOT
+from app.query_legacy.catalog import EXAMPLE_QUESTIONS, FEW_SHOT
 
 
 def test_qry_r016_default_settings_fit_in_one_minute() -> None:

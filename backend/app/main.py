@@ -9,11 +9,11 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.config import Settings
-from app.query.adapters.ollama import OllamaSqlGenerator
-from app.query.adapters.sqlite import SqliteSalesDatabase
-from app.query.api import create_router
-from app.query.graph import AgentSettings, SqlAgent
-from app.query.ports import SalesDatabase, SqlGenerator
+from app.query_legacy.adapters.ollama import OllamaSqlGenerator
+from app.query_legacy.adapters.sqlite import SqliteSalesDatabase
+from app.query_legacy.api import create_router
+from app.query_legacy.graph import AgentSettings, SqlAgent
+from app.query_legacy.ports import SalesDatabase, SqlGenerator
 
 
 def create_app(

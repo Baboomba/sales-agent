@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from app.query.model import Column, QueryResult, Table
-from app.query.ports import ExecutionError, GeneratorUnavailable
+from app.query_legacy.model import Column, QueryResult, Table
+from app.query_legacy.ports import ExecutionError, GeneratorUnavailable
 
 TABLES = (
     Table(

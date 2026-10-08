@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from app.query.model import QueryResult, Table
+from app.query_legacy.model import QueryResult, Table
 
 
 class GeneratorUnavailable(Exception):

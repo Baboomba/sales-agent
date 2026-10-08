@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from app.query.graph import AgentSettings, SqlAgent
-from app.query.model import Done, Event, Failed, Generated, QueryResult, Rejected, Validated
-from app.query.ports import ExecutionError, GeneratorUnavailable
-from app.query.rules import explain_execution_error
+from app.query_legacy.graph import AgentSettings, SqlAgent
+from app.query_legacy.model import Done, Event, Failed, Generated, QueryResult, Rejected, Validated
+from app.query_legacy.ports import ExecutionError, GeneratorUnavailable
+from app.query_legacy.rules import explain_execution_error
 from tests.fakes import FakeDatabase, ScriptedGenerator, sql_json
 
 SETTINGS = AgentSettings(max_attempts=3, row_limit=200)

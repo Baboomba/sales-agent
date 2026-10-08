@@ -6,8 +6,8 @@
 
 from __future__ import annotations
 
-from app.query.model import Column, Table
-from app.query.prompt import build_prompt
+from app.query_legacy.model import Column, Table
+from app.query_legacy.prompt import build_prompt
 from tests.fakes import TABLES
 
 

@@ -6,8 +6,8 @@ import sqlite3
 import time
 from pathlib import Path
 
-from app.query.model import Column, QueryResult, Table
-from app.query.ports import ExecutionError
+from app.query_legacy.model import Column, QueryResult, Table
+from app.query_legacy.ports import ExecutionError
 
 # 진행 처리기를 부르는 간격(가상 머신 명령 수). 작을수록 제한 시간에 정확하지만 느려진다.
 _PROGRESS_STEPS = 1_000

@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 from ollama import ResponseError
 
-from app.query.adapters.ollama import unavailable_reason
+from app.query_legacy.adapters.ollama import unavailable_reason
 
 
 def test_qry_r013_connection_failure_reason() -> None:

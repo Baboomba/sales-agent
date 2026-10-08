@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.query.rules import (
+from app.query_legacy.rules import (
     GenerationError,
     SqlRejected,
     check_question,

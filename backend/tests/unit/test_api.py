@@ -9,8 +9,8 @@ import pytest
 
 from app.config import Settings
 from app.main import create_app
-from app.query.catalog import EXAMPLE_QUESTIONS
-from app.query.ports import GeneratorUnavailable
+from app.query_legacy.catalog import EXAMPLE_QUESTIONS
+from app.query_legacy.ports import GeneratorUnavailable
 from tests.fakes import FakeDatabase, ScriptedGenerator, sql_json
 
 SETTINGS = Settings()

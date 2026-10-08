@@ -10,10 +10,10 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, field_validator
 
-from app.query.catalog import COLUMN_DESCRIPTIONS, EXAMPLE_QUESTIONS, TABLE_DESCRIPTIONS
-from app.query.graph import SqlAgent
-from app.query.model import Event, Table
-from app.query.rules import check_question
+from app.query_legacy.catalog import COLUMN_DESCRIPTIONS, EXAMPLE_QUESTIONS, TABLE_DESCRIPTIONS
+from app.query_legacy.graph import SqlAgent
+from app.query_legacy.model import Event, Table
+from app.query_legacy.rules import check_question
 
 
 class QueryRequest(BaseModel):

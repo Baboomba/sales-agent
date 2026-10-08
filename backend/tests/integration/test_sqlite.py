@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from app.query.adapters.sqlite import SqliteSalesDatabase
-from app.query.ports import ExecutionError
+from app.query_legacy.adapters.sqlite import SqliteSalesDatabase
+from app.query_legacy.ports import ExecutionError
 
 pytestmark = pytest.mark.integration
 

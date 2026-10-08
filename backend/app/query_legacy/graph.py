@@ -13,7 +13,7 @@ from typing import Any
 
 from langgraph.graph import END, START, StateGraph
 
-from app.query.model import (
+from app.query_legacy.model import (
     Done,
     Event,
     Failed,
@@ -23,9 +23,9 @@ from app.query.model import (
     Stage,
     Validated,
 )
-from app.query.ports import ExecutionError, GeneratorUnavailable, SalesDatabase, SqlGenerator
-from app.query.prompt import build_prompt
-from app.query.rules import (
+from app.query_legacy.ports import ExecutionError, GeneratorUnavailable, SalesDatabase, SqlGenerator
+from app.query_legacy.prompt import build_prompt
+from app.query_legacy.rules import (
     GenerationError,
     SqlRejected,
     explain_execution_error,

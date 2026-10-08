@@ -7,7 +7,7 @@ from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
 from ollama import ResponseError
 
-from app.query.ports import GeneratorUnavailable
+from app.query_legacy.ports import GeneratorUnavailable
 
 
 def unavailable_reason(error: Exception, *, model: str, timeout_seconds: float) -> str:

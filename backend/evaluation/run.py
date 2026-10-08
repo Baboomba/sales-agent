@@ -19,10 +19,10 @@ from pathlib import Path
 import yaml
 
 from app.config import Settings
-from app.query.adapters.ollama import OllamaSqlGenerator
-from app.query.adapters.sqlite import SqliteSalesDatabase
-from app.query.graph import AgentSettings, SqlAgent
-from app.query.model import Done, Failed, Generated
+from app.query_legacy.adapters.ollama import OllamaSqlGenerator
+from app.query_legacy.adapters.sqlite import SqliteSalesDatabase
+from app.query_legacy.graph import AgentSettings, SqlAgent
+from app.query_legacy.model import Done, Failed, Generated
 
 HERE = Path(__file__).resolve().parent
 RESULTS_DIR = HERE / "results"
