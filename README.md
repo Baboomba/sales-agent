@@ -82,6 +82,7 @@ git clone -c core.symlinks=true https://github.com/Baboomba/sales-agent.git
 ```bash
 scripts/check.sh      # 전체 검사 — CI 와 같다
 scripts/test.sh       # 서버 테스트
+scripts/mutate.sh     # 변이 테스트 — 테스트가 틀린 구현을 잡는지
 scripts/eval.sh       # 평가 세트 (모델 서버 필요)
 scripts/dev.sh        # 개발 서버 (서버 8000 + 화면 5173)
 ```
