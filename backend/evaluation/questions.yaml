@@ -1,0 +1,163 @@
+# 평가 세트. 정답 SQL 의 실행 결과와 Agent 의 실행 결과를 비교한다.
+#
+# ordered: true  — 순서까지 맞아야 정답 (순위 · 추이 질문)
+# ordered: false — 행 순서는 보지 않는다
+#
+# 문항을 빼서 점수를 올리지 않는다. 바꾸면 이유를 docs/eval/README.md 에 적는다.
+# 예시 질문(app/query/catalog.py 의 FEW_SHOT)과 겹치는 문항을 두지 않는다.
+
+- id: E01
+  type: 매출 정의
+  question: 2025년 전체 매출은 얼마야?
+  ordered: false
+  sql: SELECT SUM(quantity * unit_price) FROM order_items
+
+- id: E02
+  type: 집계
+  question: 지역별 매출을 높은 순으로 보여줘
+  ordered: true
+  sql: |
+    SELECT s.region, SUM(oi.quantity * oi.unit_price) AS revenue
+    FROM order_items oi JOIN orders o ON o.order_id = oi.order_id
+    JOIN stores s ON s.store_id = o.store_id
+    GROUP BY s.region ORDER BY revenue DESC
+
+- id: E03
+  type: 순위
+  question: 매출 상위 3개 매장은?
+  ordered: true
+  sql: |
+    SELECT s.name FROM order_items oi JOIN orders o ON o.order_id = oi.order_id
+    JOIN stores s ON s.store_id = o.store_id
+    GROUP BY s.name ORDER BY SUM(oi.quantity * oi.unit_price) DESC LIMIT 3
+
+- id: E04
+  type: 날짜
+  question: 월별 주문 건수를 1월부터 보여줘
+  ordered: true
+  sql: |
+    SELECT strftime('%m', ordered_on) AS month, COUNT(*) FROM orders
+    GROUP BY month ORDER BY month
+
+- id: E05
+  type: 집계
+  question: 주문 경로별 주문 건수는?
+  ordered: false
+  sql: SELECT channel, COUNT(*) FROM orders GROUP BY channel
+
+- id: E06
+  type: 순위
+  question: 수량 기준으로 가장 많이 팔린 상품 하나
+  ordered: true
+  sql: |
+    SELECT p.name FROM order_items oi JOIN products p ON p.product_id = oi.product_id
+    GROUP BY p.name ORDER BY SUM(oi.quantity) DESC LIMIT 1
+
+- id: E07
+  type: 집계
+  question: 상품 분류별 판매 수량 합계
+  ordered: false
+  sql: |
+    SELECT p.category, SUM(oi.quantity) FROM order_items oi
+    JOIN products p ON p.product_id = oi.product_id GROUP BY p.category
+
+- id: E08
+  type: 매출 정의
+  question: 강남점의 2025년 매출은?
+  ordered: false
+  sql: |
+    SELECT SUM(oi.quantity * oi.unit_price) FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id JOIN stores s ON s.store_id = o.store_id
+    WHERE s.name = '강남점'
+
+- id: E09
+  type: 조건
+  question: 서울에 있는 매장은 몇 개야?
+  ordered: false
+  sql: SELECT COUNT(*) FROM stores WHERE region = '서울'
+
+- id: E10
+  type: 날짜
+  question: 7월에 가장 많이 팔린 디저트는?
+  ordered: true
+  sql: |
+    SELECT p.name FROM order_items oi JOIN orders o ON o.order_id = oi.order_id
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE p.category = '디저트' AND strftime('%m', o.ordered_on) = '07'
+    GROUP BY p.name ORDER BY SUM(oi.quantity) DESC LIMIT 1
+
+- id: E11
+  type: 순위
+  question: 배달 주문이 가장 많은 매장은?
+  ordered: true
+  sql: |
+    SELECT s.name FROM orders o JOIN stores s ON s.store_id = o.store_id
+    WHERE o.channel = '배달' GROUP BY s.name ORDER BY COUNT(*) DESC LIMIT 1
+
+- id: E12
+  type: 매출 정의
+  question: 12월 버거 분류 매출은?
+  ordered: false
+  sql: |
+    SELECT SUM(oi.quantity * oi.unit_price) FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id JOIN products p ON p.product_id = oi.product_id
+    WHERE p.category = '버거' AND strftime('%m', o.ordered_on) = '12'
+
+- id: E13
+  type: 매출 정의
+  question: 주문 한 건당 평균 매출은?
+  ordered: false
+  sql: |
+    SELECT CAST(SUM(quantity * unit_price) AS REAL) / COUNT(DISTINCT order_id) FROM order_items
+
+- id: E14
+  type: 날짜
+  question: 2023년에 문을 연 매장 이름
+  ordered: false
+  sql: SELECT name FROM stores WHERE opened_on LIKE '2023-%'
+
+- id: E15
+  type: 날짜
+  question: 상반기(1월~6월) 매출 합계
+  ordered: false
+  sql: |
+    SELECT SUM(oi.quantity * oi.unit_price) FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id
+    WHERE o.ordered_on BETWEEN '2025-01-01' AND '2025-06-30'
+
+- id: E16
+  type: 집계
+  question: 부산 지역 매장별 매출
+  ordered: false
+  sql: |
+    SELECT s.name, SUM(oi.quantity * oi.unit_price) FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id JOIN stores s ON s.store_id = o.store_id
+    WHERE s.region = '부산' GROUP BY s.name
+
+- id: E17
+  type: 조인
+  question: 정가보다 싸게 팔린 주문 상품은 몇 건이야?
+  ordered: false
+  sql: |
+    SELECT COUNT(*) FROM order_items oi JOIN products p ON p.product_id = oi.product_id
+    WHERE oi.unit_price < p.unit_price
+
+- id: E18
+  type: 날짜
+  question: 주말(토요일, 일요일) 주문 건수
+  ordered: false
+  sql: SELECT COUNT(*) FROM orders WHERE strftime('%w', ordered_on) IN ('0', '6')
+
+- id: E19
+  type: 조건
+  question: 가장 비싼 상품의 이름과 정가
+  ordered: true
+  sql: SELECT name, unit_price FROM products ORDER BY unit_price DESC LIMIT 1
+
+- id: E20
+  type: 순위
+  question: 주문 건수가 가장 적은 매장은?
+  ordered: true
+  sql: |
+    SELECT s.name FROM orders o JOIN stores s ON s.store_id = o.store_id
+    GROUP BY s.name ORDER BY COUNT(*) ASC LIMIT 1
