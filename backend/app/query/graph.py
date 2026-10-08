@@ -27,6 +27,7 @@ from app.query.prompt import build_prompt
 from app.query.rules import (
     GenerationError,
     SqlRejected,
+    explain_execution_error,
     parse_generation,
     sanitize_value,
     validate_sql,
@@ -102,7 +103,8 @@ class SqlAgent:
         try:
             result = await asyncio.to_thread(self._database.execute, state["sql"])
         except ExecutionError as error:
-            return self._reject(state["attempt"], "execute", f"실행 오류: {error}")
+            reason = f"실행 오류: {explain_execution_error(str(error))}"
+            return self._reject(state["attempt"], "execute", reason)
         # QRY-R011 실행 뒤에는 모델을 부르지 않는다. 값은 DB 가 낸 그대로다.
         rows = tuple(tuple(sanitize_value(v) for v in row) for row in result.rows)
         truncated = state.get("capped", False) and len(rows) >= self._settings.row_limit
