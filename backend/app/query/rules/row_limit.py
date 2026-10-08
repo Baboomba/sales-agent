@@ -18,6 +18,11 @@ def limit_to_attach(outer_limit: int | None, row_limit: int) -> int | None:
     return row_limit + 1
 
 
+def rows_to_fetch(row_limit: int) -> int:
+    """QRY-R005 매출 DB 가 가져올 행 수. 상한보다 하나 더 — 잘렸는지 알 수 있게."""
+    return row_limit + 1
+
+
 def cap_rows(result: QueryResult, row_limit: int) -> QueryResult:
     """QRY-R005 상한을 넘은 결과를 상한만큼 잘라 내고 잘렸다고 표시한다."""
     return replace(result, rows=result.rows[:row_limit], truncated=len(result.rows) > row_limit)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.query.model.run import QueryResult
-from app.query.rules.row_limit import cap_rows, limit_to_attach
+from app.query.rules.row_limit import cap_rows, limit_to_attach, rows_to_fetch
 
 
 @pytest.mark.parametrize(
@@ -50,3 +50,9 @@ def test_qry_r005_result_of_exactly_the_limit_is_not_truncated() -> None:
 def test_empty_result_is_not_truncated() -> None:
     result = QueryResult(columns=("n",), rows=())
     assert cap_rows(result, 2) == QueryResult(columns=("n",), rows=(), truncated=False)
+
+
+@pytest.mark.parametrize(("row_limit", "expected"), [(200, 201), (50, 51)])
+def test_qry_r005_rows_to_fetch_is_one_more_than_the_limit(row_limit: int, expected: int) -> None:
+    """QRY-R005 매출 DB 는 상한+1 행까지만 가져온다 — 잘렸는지 알 수 있게."""
+    assert rows_to_fetch(row_limit) == expected

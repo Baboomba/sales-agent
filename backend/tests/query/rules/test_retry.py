@@ -6,7 +6,12 @@ import pytest
 
 from app.query.model.failure import GenerationFailure, GenerationFailureKind, QueryLimits, Stage
 from app.query.model.run import Failed, Rejected
-from app.query.rules.retry import after_generation_failure, after_rejection
+from app.query.rules.retry import (
+    after_generation_failure,
+    after_rejection,
+    after_unexpected_error,
+)
+from tests.query.rules.support import assert_reason
 
 LIMITS = QueryLimits(
     max_attempts=3, row_limit=200, generation_timeout_seconds=13, query_timeout_seconds=5
@@ -115,3 +120,13 @@ def test_format_failure_with_single_attempt_limit_fails_on_the_first_attempt() -
     step = after_generation_failure(1, GenerationFailure(FORMAT, FORMAT_DETAIL), limits)
     assert isinstance(step, Failed)
     assert FORMAT_DETAIL in step.reason
+
+
+# --- QRY-R012 예상하지 못한 오류 ------------------------------------------
+
+
+def test_qry_r012_unexpected_error_ends_as_a_failure_with_a_reason() -> None:
+    """QRY-R012 예상하지 못한 오류도 실패로 끝내고, 사용자에게 보일 사유가 있다."""
+    step = after_unexpected_error()
+    assert isinstance(step, Failed)
+    assert_reason(step.reason)

@@ -17,6 +17,11 @@ def after_rejection(
     return Rejected(attempt=attempt, stage=stage, reason=reason)
 
 
+def after_unexpected_error() -> Failed:
+    """QRY-R012 예상하지 못한 오류로 끝낼 때의 실패. 버그라 사용자가 고칠 것은 다시 시도뿐이다."""
+    return Failed("처리 중 예상하지 못한 오류가 났습니다. 다시 시도해 주세요.")
+
+
 def after_generation_failure(
     attempt: int, failure: GenerationFailure, limits: QueryLimits
 ) -> Rejected | Failed:
