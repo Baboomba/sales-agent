@@ -1,0 +1,21 @@
+.failed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.retry {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--point);
+  background: var(--point-soft);
+  border-radius: 8px;
+}
+
+.retry:hover {
+  background: #dde7fc;
+}

@@ -7,6 +7,7 @@ export type FakeReply =
   | { sse: string; status?: 200 }
   | { status: number; text: string }
   | { sseThenDisconnect: string } // SSE 를 보낸 뒤 본문 스트림이 끊긴다
+  | { sseThenHang: string } // SSE 를 보낸 뒤 끊길 때까지 더 보내지 않는다 — 중지하면 AbortError
   | { hang: true } // 끊길 때까지 답하지 않는다 — 중지하면 AbortError
   | { disconnect: true }; // 연결이 끊긴다 — fetch 가 TypeError
 
@@ -29,6 +30,26 @@ const reply = (answer: FakeReply, signal: AbortSignal | undefined): Promise<Resp
         const chunk = chunks.shift();
         if (chunk) controller.enqueue(chunk);
         else controller.error(new TypeError("zzz 연결 끊김"));
+      },
+    });
+    return Promise.resolve(new Response(body));
+  }
+  if ("sseThenHang" in answer) {
+    // 첫 읽기에 SSE 를 주고, 다음 읽기는 중지될 때까지 기다린다.
+    const chunks = [new TextEncoder().encode(answer.sseThenHang)];
+    const body = new ReadableStream<Uint8Array>({
+      pull: (controller) => {
+        const chunk = chunks.shift();
+        if (chunk) {
+          controller.enqueue(chunk);
+          return;
+        }
+        return new Promise<void>((resolve) => {
+          signal?.addEventListener("abort", () => {
+            controller.error(new DOMException("zzz", "AbortError"));
+            resolve();
+          });
+        });
       },
     });
     return Promise.resolve(new Response(body));

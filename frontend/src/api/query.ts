@@ -9,6 +9,12 @@ export const getSchema = async (): Promise<SchemaTable[]> => {
   return body.tables;
 };
 
+/** 쓰는 모델 이름 (설계서 2.4 `/api/health`). */
+export const getModelName = async (): Promise<string> => {
+  const body = await getJson<{ status: string; model: string }>("/api/health");
+  return body.model;
+};
+
 export const getExamples = async (): Promise<string[]> => {
   const body = await getJson<{ questions: string[] }>("/api/examples");
   return body.questions;

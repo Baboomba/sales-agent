@@ -1,92 +1,306 @@
-/* 크기를 고정한다 — 질문칸 46 · 예시 72 · 나머지는 결과 칸. 내용은 칸 안에서 스크롤한다 (#63). */
+/* 질문하기 — 가운데(창 폭을 따름, 최대 700) + 처리 기록 320. 높이 736 고정, 칸 안에서만 스크롤한다 (SCR-R001). */
 .ask {
   display: grid;
-  grid-template-rows: 46px 72px 1fr;
-  row-gap: 10px;
-  height: 640px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-rows: 736px;
+}
+
+/* 질문 52 · 예시(줄바꿈, 줄 수만큼) · 단계 칸 72 · 결과 카드는 나머지. 휴대폰 탭은 넓은 화면에서 숨긴다. */
+.main {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 52px auto 72px 1fr;
+  row-gap: 16px;
+  min-height: 0;
+  padding: 24px;
 }
 
 .form {
   display: grid;
-  grid-template-columns: 1fr 120px;
-  column-gap: 8px;
-  height: 46px;
+  grid-template-columns: minmax(0, 1fr) 128px;
+  gap: 8px;
 }
 
-.form input {
-  height: 46px;
-  box-sizing: border-box;
-  padding: 0 14px;
-  font: inherit;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+.box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 16px;
+  color: var(--text-3);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  box-shadow: var(--sh-1);
 }
 
-.form input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
+.box:focus-within {
+  border-color: var(--point);
+  box-shadow: 0 0 0 3px var(--point-soft);
 }
 
-/* 질문하기 ↔ 중지가 바뀌어도 폭이 같다. */
-.form button {
-  width: 120px;
-  height: 46px;
-  padding: 0;
-  font: inherit;
+.box svg {
+  flex: none;
+}
+
+.box input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  font-size: 15px;
+  color: var(--text-1);
+  background: none;
+  border: 0;
+  outline: 0;
+}
+
+/* 질문하기 ↔ 중지가 바뀌어도 폭이 같다. 묻는 동안 흐리게 하지 않는다 (SCR-R004). */
+.submit {
+  width: 128px;
+  height: 52px;
   font-weight: 600;
   color: #fff;
-  background: var(--accent);
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
+  background: var(--point);
+  border-radius: var(--r-sm);
 }
 
-.form button:disabled {
-  opacity: 0.5;
+.submit:hover {
+  background: var(--point-d);
+}
+
+/* 누르는 동안만 살짝 눌려 들어가고 더 진해진다. 크기 · 자리는 그대로라 옆 칸이 움직이지 않는다. */
+.submit:active:enabled {
+  background: #162c75;
+  transform: scale(0.97);
+}
+
+.submit:focus-visible,
+.chip:focus-visible {
+  outline: 0;
+  box-shadow:
+    0 0 0 3px var(--point-soft),
+    0 0 0 4px var(--point);
+}
+
+.submit,
+.chip {
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s,
+    transform 0.08s;
+}
+
+.submit:disabled {
   cursor: default;
+  background: var(--point);
 }
 
+/* 예시는 줄바꿈해 모두 보인다. 줄 수는 창 폭으로만 정해지고 질문하는 동안 바뀌지 않는다. */
 .examples {
-  height: 72px;
-  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 32px;
 }
 
-.examples button {
-  display: inline-block;
-  height: 30px;
-  margin: 0 6px 6px 0;
-  padding: 0 10px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-/* 진행 · SQL · 결과. 묻기 전에도 자리를 잡아 둔다. */
-.output {
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.output h2 {
-  margin: 18px 0 10px;
-  font-size: 15px;
-  color: var(--muted);
-}
-
-.output h2:first-child {
-  margin-top: 0;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
+.chip {
+  flex: none;
+  max-width: 100%;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  height: 32px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 14px;
+  font-size: 13px;
+  color: var(--text-2);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.chip:hover {
+  color: var(--point);
+  border-color: var(--point);
+}
+
+.chip:active {
+  background: var(--point-soft);
+  transform: scale(0.97);
+}
+
+.chip[aria-pressed="true"] {
+  font-weight: 600;
+  color: var(--point);
+  background: var(--point-soft);
+  border-color: var(--point-soft);
+}
+
+.result {
+  display: grid;
+  grid-template-rows: 64px 1fr;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-1);
+}
+
+.resultHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.resultHead h2 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.resultHead > div:first-child {
+  min-width: 0;
+}
+
+/* 가운데 칸이 좁아져도 머리 높이가 그대로이게 한 줄로 둔다. */
+.resultHead p {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--text-3);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tabs {
+  flex: none;
+  display: flex;
+  margin-left: 12px;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+/* 탭 폭을 고정한다 — 「만든 SQL」↔「실행한 SQL」로 바뀌어도 머리가 움직이지 않는다. */
+.tab {
+  width: 96px;
+  height: 32px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  border-radius: 8px;
+}
+
+.tab[aria-selected="true"] {
+  font-weight: 600;
+  color: var(--text-1);
+  background: #fff;
+  box-shadow: var(--sh-1);
+}
+
+.resultBody {
+  min-height: 0;
+  overflow: auto;
+}
+
+.guide {
+  padding: 24px;
+  font-size: 14px;
+  color: var(--text-3);
+}
+
+.alert {
+  margin: 24px;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #8a2222;
+  background: var(--bad-soft);
+  border-radius: var(--r-sm);
+}
+
+/* 처리 기록 — 머리 64 + 요약 · 목록. */
+.log {
+  display: grid;
+  grid-template-rows: 64px 1fr;
+  min-height: 0;
+  background: var(--card);
+  border-left: 1px solid var(--line);
+}
+
+.logHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.logHead h2 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.logHead span {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* 휴대폰 — 한 줄로 쌓는다. 질문 48 · 예시 32 · 단계 칸 64 · 탭 44, 고른 탭의 칸은 480 (2.2). */
+@media (max-width: 1023px) {
+  .ask {
+    display: block;
+  }
+
+  .main {
+    grid-template-rows: 48px auto 64px 44px;
+    grid-auto-rows: 480px;
+    row-gap: 12px;
+    padding: 16px 16px 12px;
+  }
+
+  .form {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  .box {
+    height: 48px;
+  }
+
+  .box input {
+    font-size: 14px;
+  }
+
+  .submit {
+    width: 88px;
+    height: 48px;
+  }
+
+  .result {
+    grid-template-rows: 56px 1fr;
+  }
+
+  .resultHead {
+    padding: 0 16px;
+  }
+
+  .resultHead h2 {
+    font-size: 15px;
+  }
+
+  .resultHead p {
+    display: none;
+  }
+
+  .tab {
+    width: 84px;
+  }
+
+  .log {
+    height: 480px;
+    margin: 0 16px 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+  }
 }

@@ -1,6 +1,7 @@
 import type { QueryEvent } from "@/api/types/query";
 
 import {
+  attemptSummary,
   doneEvent,
   isAbort,
   latestSql,
@@ -79,5 +80,24 @@ describe("isAbort", () => {
     expect(isAbort(new DOMException("zzz", "AbortError"))).toBe(true);
     expect(isAbort(new DOMException("zzz", "NetworkError"))).toBe(false);
     expect(isAbort(new TypeError("zzz"))).toBe(false);
+  });
+});
+
+describe("attemptSummary", () => {
+  it("시도 번호 · 다시 만든 수 · 행 수를 센다 (SCR-R008)", () => {
+    expect(attemptSummary([GENERATED_1, REJECTED_1, GENERATED_2, VALIDATED_2, DONE])).toEqual({
+      attempts: 2,
+      retries: 1,
+      rows: 1,
+    });
+  });
+
+  it("시도 번호는 가장 큰 값이고, 끝나지 않았으면 행 수가 없다 — 위의 짝 (SCR-R008)", () => {
+    expect(attemptSummary([GENERATED_2, REJECTED_1])).toEqual({
+      attempts: 2,
+      retries: 1,
+      rows: null,
+    });
+    expect(attemptSummary([])).toEqual({ attempts: 0, retries: 0, rows: null });
   });
 });

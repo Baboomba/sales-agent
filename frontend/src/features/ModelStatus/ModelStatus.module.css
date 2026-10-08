@@ -1,0 +1,24 @@
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--text-2);
+  background: var(--surface);
+  border-radius: 999px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+@media (max-width: 1023px) {
+  .status {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}

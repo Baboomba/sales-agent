@@ -48,7 +48,7 @@ describe("useAskQuery", () => {
     expect(result.current.events).toEqual([{ type: "failed", reason: "zzz 둘째 사유" }]);
   });
 
-  it("새로 물어도 첫 단계가 올 때까지는 앞 단계를 두고, 늦으면 그때 지우고 진행 중을 알린다 (#63)", async () => {
+  it("새로 물어도 첫 단계가 올 때까지는 앞 단계를 두고, 늦으면 그때 지우고 진행 중을 알린다 (SCR-R002 · SCR-R003)", async () => {
     install({
       "/api/queries": [{ sse: sse(["failed", { reason: "zzz 앞 사유" }]) }, { hang: true }],
     });
@@ -70,7 +70,87 @@ describe("useAskQuery", () => {
     expect(result.current.pending).toBe(false);
   });
 
-  it("진행 중에 다시 물으면 보내지 않는다", async () => {
+  it("첫 단계를 받은 뒤 응답이 늦어져도 받은 단계는 지우지 않고, 중지하면 그때 모두 비운다 (SCR-R003)", async () => {
+    install({ "/api/queries": [{ sseThenHang: sse(["generated", GENERATED]) }] });
+    const { result } = renderHook(() => useAskQuery());
+
+    let asking: Promise<void> = Promise.resolve();
+    act(() => {
+      asking = result.current.ask("zzz 질문");
+    });
+    await waitFor(() => expect(result.current.pending).toBe(true));
+    expect(result.current.events).toEqual([{ type: "generated", ...GENERATED }]);
+
+    act(() => result.current.stop());
+    await act(() => asking);
+    expect(result.current.events).toEqual([]);
+  });
+
+  it("끝 이벤트 없이 응답이 닫히면 받은 단계 뒤에 실패를 덧붙인다", async () => {
+    install({ "/api/queries": [{ sse: sse(["generated", GENERATED]) }] });
+    const { result } = renderHook(() => useAskQuery());
+
+    await act(() => result.current.ask("zzz 질문"));
+
+    expect(result.current.events).toHaveLength(2);
+    expect(result.current.events[1]?.type).toBe("failed");
+  });
+
+  it("300ms 전에 중지하면 앞 질문의 단계를 남기지 않는다 (SCR-R003)", async () => {
+    install({
+      "/api/queries": [{ sse: sse(["failed", { reason: "zzz 앞 사유" }]) }, { hang: true }],
+    });
+    const { result } = renderHook(() => useAskQuery());
+    await act(() => result.current.ask("zzz 첫 질문"));
+
+    let asking: Promise<void> = Promise.resolve();
+    act(() => {
+      asking = result.current.ask("zzz 둘째 질문");
+    });
+    act(() => result.current.stop());
+    await act(() => asking);
+
+    expect(result.current.events).toEqual([]);
+  });
+
+  it("진행 중은 299ms 에는 아직 없고 300ms 에 켜진다 (SCR-R002)", async () => {
+    vi.useFakeTimers();
+    try {
+      install({ "/api/queries": [{ hang: true }] });
+      const { result } = renderHook(() => useAskQuery());
+
+      let asking: Promise<void> = Promise.resolve();
+      act(() => {
+        asking = result.current.ask("zzz 질문");
+      });
+      act(() => vi.advanceTimersByTime(299));
+      expect(result.current.pending).toBe(false);
+      act(() => vi.advanceTimersByTime(1));
+      expect(result.current.pending).toBe(true);
+
+      act(() => result.current.stop());
+      await act(() => asking);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("300ms 안에 끝나면 진행 중을 한 번도 알리지 않는다 (SCR-R002)", async () => {
+    install({ "/api/queries": [{ sse: sse(["generated", GENERATED], ["failed", FAILED]) }] });
+    const seen: boolean[] = [];
+    const { result } = renderHook(() => {
+      const state = useAskQuery();
+      seen.push(state.pending);
+      return state;
+    });
+
+    await act(() => result.current.ask("zzz 질문"));
+
+    expect(result.current.events).toHaveLength(2);
+    expect(seen).not.toContain(true);
+  });
+
+  it("진행 중에 다시 물으면 보내지 않는다 (SCR-R004)", async () => {
     const server = install({ "/api/queries": [{ hang: true }, { sse: sse(["failed", FAILED]) }] });
     const { result } = renderHook(() => useAskQuery());
 
@@ -86,7 +166,7 @@ describe("useAskQuery", () => {
     await act(() => first);
   });
 
-  it("공백뿐인 질문은 보내지 않는다", async () => {
+  it("공백뿐인 질문은 보내지 않는다 (SCR-R005)", async () => {
     const server = install({ "/api/queries": [{ sse: sse(["failed", FAILED]) }] });
     const { result } = renderHook(() => useAskQuery());
 
@@ -155,6 +235,8 @@ describe("useExamples", () => {
     install({ "/api/examples": [{ json: { questions: ["zzz 둘째", "zzz 첫"] } }] });
     const { result } = renderHook(() => useExamples());
 
-    await waitFor(() => expect(result.current).toEqual(["zzz 둘째", "zzz 첫"]));
+    await waitFor(() =>
+      expect(result.current.state).toEqual({ status: "ok", value: ["zzz 둘째", "zzz 첫"] }),
+    );
   });
 });
