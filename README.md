@@ -2,7 +2,7 @@
 
 매출 데이터에 한국어로 물으면, Agent 가 SQL 을 만들고 → 규칙으로 검증하고 → 읽기 전용으로 실행해 결과를 표로 돌려줍니다. 유료 API 없이 로컬의 작은 모델(qwen2.5-coder 1.5B)로 동작합니다.
 
-> 이 저장소는 기능보다 **AI 에이전트로 일하는 방식**을 보여 주려고 만들었습니다. 설계서 → 테스트 우선 구현 → 검사 장치 → 평가 세트로 이어지는 체계는 [AI 에이전트 작업 체계](docs/agentic-workflow.md)에 정리했습니다.
+> 이 저장소는 기능보다 **AI 에이전트로 일하는 방식**을 보여 주려고 만들었습니다. 설계서 → 테스트 우선 구현 → 검사 장치 → 평가 세트로 이어지는 체계는 [AI 에이전트 작업 체계](docs/agentic-workflow.md)에 정리했습니다. 멀티 에이전트 감사로 찾은 보안 우회와 버그를 고친 과정은 [이슈 #17](https://github.com/Baboomba/sales-agent/issues/17)에서 시작합니다.
 
 ## 실행
 
@@ -60,7 +60,7 @@ stateDiagram-v2
 |---|---|
 | [요구사항](docs/requirements.md) | 모든 설계의 근거 |
 | [아키텍처](docs/architecture.md) | 구성 · 포트와 어댑터 · 기술 선택과 버린 대안 |
-| [질의 설계서](docs/design/query.md) | 그래프 · 이벤트 · 규칙 14개(`QRY-R001`~) · 테스트 사항 |
+| [질의 설계서](docs/design/query.md) | 그래프 · 이벤트 · 규칙 18개(`QRY-R001`~) · 테스트 사항 |
 | [데이터 설계](docs/design/data.md) | 표 · 매출의 정의 |
 | [평가](docs/eval/README.md) | 평가 방법 · 모델 비교 · 틀린 문항 분석 |
 | [AI 에이전트 작업 체계](docs/agentic-workflow.md) | 컨텍스트 · 스킬 · 훅 · 검사 · 감사 워크플로우 |
