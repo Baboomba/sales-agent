@@ -20,37 +20,15 @@ flowchart LR
 
 **화면과 API 가 같은 출처에서 나온다.** 교차 출처 설정이 필요 없고 배포물이 하나다.
 
-## 2. 서버 코드 구조 — 포트와 어댑터
+## 2. 코드 구조 — 모델 · 규칙 · 의존성 · 유스케이스 · API
 
-```text
-app/
-  main.py               조립 루트. 어댑터를 만들어 그래프에 끼운다
-  config.py             환경변수
-  query/
-    model.py            상태와 이벤트. 아무것도 import 하지 않는다
-    rules.py            SQL 검증·LIMIT 보정. 순수 함수
-    prompt.py           프롬프트 조립. 순수 함수
-    ports.py            밖에서 받는 것의 인터페이스 (SqlGenerator · SalesDatabase)
-    graph.py            LangGraph 그래프. 포트만 안다
-    api.py              HTTP 경계. 그래프 이벤트를 SSE 로 옮긴다
-    adapters/
-      ollama.py         SqlGenerator 구현
-      sqlite.py         SalesDatabase 구현
-```
+서버는 도메인 단위로 나누고, 도메인 안은 다섯 계층으로 나눈다. 모델이 기반이고, 판단은 모델만 보는 규칙에만 둔다. 바깥(언어 모델 · SQL 방언 · DB)은 의존성이 모델로 옮긴다.
 
-**의존은 안쪽으로만 향한다.**
+* 모델 · 규칙은 LangGraph 도, FastAPI 도, 바깥 라이브러리도 모른다. 그래서 언어 모델 없이 테스트된다(NFR-005).
+* 유스케이스는 의존성의 인터페이스만 안다. Ollama 를 다른 모델 서버로, SQLite 를 다른 DB 로 바꿔도 모델 · 규칙 · 유스케이스는 그대로다.
+* 이 경계는 사람이 지키지 않는다. `import-linter` 가 검사한다.
 
-```text
-api ──▶ graph ──▶ rules · prompt ──▶ model
-          │
-          └──▶ ports ◀── adapters (구현)
-```
-
-* `model` · `rules` · `prompt` 는 LangGraph 도, FastAPI 도, 어댑터도 모른다. 그래서 모델 없이 테스트된다(NFR-005).
-* `graph` 는 포트만 안다. Ollama 를 다른 모델 서버로 바꿔도 그래프는 그대로다.
-* 어댑터를 아는 곳은 `main.py` 하나다.
-
-**이 경계는 사람이 지키지 않는다.** `import-linter` 가 CI 에서 검사한다(`pyproject.toml` 의 `[tool.importlinter]`).
+계층별 책임 · 의존 방향 · 실패를 나누는 법은 [코드 아키텍처](convention/code-architecture.md)가 갖는다.
 
 ## 3. 왜 이렇게 골랐나
 
