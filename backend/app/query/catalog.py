@@ -26,6 +26,9 @@ COLUMN_DESCRIPTIONS: dict[tuple[str, str], str] = {
 }
 
 REVENUE_DEFINITION = "매출 = SUM(order_items.quantity * order_items.unit_price)"
+ORDER_COUNT_DEFINITION = (
+    "주문 건수 = COUNT(DISTINCT orders.order_id). 주문 한 건당 평균은 매출 합 / 주문 건수"
+)
 
 # 작은 모델은 예시가 있을 때 정확도가 크게 오른다. 평가 세트와 겹치지 않는 질문만 둔다.
 FEW_SHOT: tuple[tuple[str, str], ...] = (
@@ -48,6 +51,6 @@ EXAMPLE_QUESTIONS: tuple[str, ...] = (
     "2025년 지역별 매출을 높은 순으로 보여줘",
     "매출 상위 3개 매장은?",
     "월별 주문 건수 추이",
-    "배달 주문 비중이 가장 높은 매장은?",
+    "배달 주문이 가장 많은 지역은?",
     "7월에 가장 많이 팔린 디저트는?",
 )

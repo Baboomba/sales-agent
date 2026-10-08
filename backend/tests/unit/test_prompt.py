@@ -31,3 +31,10 @@ def test_feedback_is_included_only_when_present() -> None:
     reason = "ZZZ 허용되지 않은 표"
     assert reason in build_prompt("매출", TABLES, feedback=reason)
     assert "직전 시도" not in build_prompt("매출", TABLES, feedback=None)
+
+
+def test_prompt_states_order_count_and_strftime_rules() -> None:
+    """QRY-R006 평가 1차에서 틀린 자리(주문당 평균 · strftime 비교)를 프롬프트가 알려 준다."""
+    prompt = build_prompt("매출", TABLES, feedback=None)
+    assert "COUNT(DISTINCT orders.order_id)" in prompt
+    assert "'0'(일)~'6'(토)" in prompt
