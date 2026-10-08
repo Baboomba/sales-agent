@@ -60,6 +60,7 @@ source_paths = [
     "app/query/dependency/impl/sqlite_sales_database.py",
     "app/query/dependency/impl/ollama_generator.py",
     "app/query/usecase/",
+    "app/query/api/",
 ]
 also_copy = ["app/"]
 pytest_add_cli_args_test_selection = ["tests/query/", "tests/integration/test_sqlite_sales_database.py"]
