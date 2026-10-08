@@ -4,7 +4,7 @@ import { getExamples, streamQuery } from "@/api/query";
 import type { QueryEvent } from "@/api/types/query";
 import { useLoad } from "@/common/useLoad";
 
-import { PENDING_DELAY_MS, isAbort, questionToSend } from "./service";
+import { PENDING_DELAY_MS, REVEAL_STEP_MS, isAbort, questionToSend } from "./service";
 
 /** 예시 질문을 불러온다. 못 불러오면 실패를 알리고 다시 시도할 수 있다 (SCR-R014). */
 export const useExamples = () => useLoad(getExamples);
@@ -67,4 +67,47 @@ export const useAskQuery = () => {
   const stop = () => abort.current?.abort();
 
   return { question, setQuestion, events, running, pending: running && slow, ask, stop };
+};
+
+/** 움직임을 줄이도록 설정했는지. 설정을 읽을 수 없는 곳(테스트 등)은 아니라고 본다. */
+const prefersReducedMotion = (): boolean =>
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * 받은 단계 가운데 지금 드러낸 것 (SCR-R016).
+ *
+ * 첫 단계는 받자마자 드러낸다(SCR-R003 의 한 번에 바꾸기 그대로). 다음 단계부터는 앞 단계를 드러낸
+ * 뒤 `REVEAL_STEP_MS` 가 지나야 드러낸다 — 이미 그만큼 지났으면 바로. 첫 단계가 바뀌면(새 질문)
+ * 처음부터 다시 센다. 움직임을 줄이도록 설정한 사용자에게는 받은 대로 모두 드러낸다.
+ */
+export const useRevealed = (events: QueryEvent[]): QueryEvent[] => {
+  const [reduced] = useState(prefersReducedMotion);
+  const [state, setState] = useState<{ first: QueryEvent | undefined; shown: number }>({
+    first: undefined,
+    shown: 0,
+  });
+  const lastRevealAt = useRef(0);
+  const counted = useRef<QueryEvent | undefined>(undefined);
+  const first = events[0];
+  // 첫 단계가 바뀌었으면(새 질문) 아직 상태에 남은 앞 질문의 수를 쓰지 않는다.
+  const shown =
+    state.first === first ? Math.min(state.shown, events.length) : Math.min(events.length, 1);
+  const behind = shown < events.length;
+
+  useEffect(() => {
+    if (counted.current !== first) {
+      counted.current = first;
+      lastRevealAt.current = Date.now();
+    }
+    if (!behind) return;
+    const wait = Math.max(0, lastRevealAt.current + REVEAL_STEP_MS - Date.now());
+    const timer = setTimeout(() => {
+      lastRevealAt.current = Date.now();
+      setState({ first, shown: shown + 1 });
+    }, wait);
+    return () => clearTimeout(timer);
+  }, [first, shown, behind]);
+
+  return reduced ? events : events.slice(0, shown);
 };
