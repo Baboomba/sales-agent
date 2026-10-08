@@ -147,3 +147,13 @@ async def test_qry_r014_bytes_in_result_are_replaced() -> None:
     done = events[-1]
     assert isinstance(done, Done)
     assert done.rows == (("<binary>",),)
+
+
+async def test_qry_r015_retry_prompt_carries_join_hint() -> None:
+    """QRY-R015 재생성 프롬프트에 JOIN 안내가 붙는다."""
+    bad = "SELECT o.ordered_on FROM stores LIMIT 10"
+    database = FakeDatabase(results={bad: ExecutionError("no such column: o.ordered_on")})
+    generator = ScriptedGenerator([sql_json(bad), sql_json(GOOD_SQL)])
+    await collect(SqlAgent(generator, database, SETTINGS))
+    assert "'o'" in generator.prompts[1]
+    assert "JOIN" in generator.prompts[1]
