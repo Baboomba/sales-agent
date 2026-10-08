@@ -6,7 +6,7 @@ interface Props {
   tables: SchemaTable[];
 }
 
-/** 어떤 표와 열에 물어볼 수 있는지. DB 순서대로, 처음에는 첫 표를 펼쳐 둔다 (FR-006 · SCR-R013). */
+/** 어떤 테이블과 컬럼에 물어볼 수 있는지. DB 순서대로, 처음에는 첫 표를 펼쳐 둔다 (FR-006 · SCR-R013). */
 export const SchemaTables = ({ tables }: Props) => (
   <div className={styles.panel}>
     {tables.map((table, index) => (

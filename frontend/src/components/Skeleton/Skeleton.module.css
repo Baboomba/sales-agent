@@ -1,0 +1,48 @@
+/* 뼈대 — 반짝임이 왼쪽에서 오른쪽으로 지나간다. 움직임을 줄인 사용자에게는 멈춘 모양만 보인다. */
+.skeleton {
+  padding: 0 24px;
+}
+
+.line {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  height: 52px;
+  border-bottom: 1px solid var(--line);
+}
+
+.head {
+  height: 44px;
+}
+
+.block {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--surface) 25%, #e6ebf3 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.head .block {
+  height: 10px;
+  background-color: #e6ebf3;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block {
+    animation: none;
+  }
+}

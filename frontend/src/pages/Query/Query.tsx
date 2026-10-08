@@ -12,10 +12,10 @@ type MobileTab = "result" | "log" | "data";
 const MOBILE_TABS: { tab: MobileTab; label: string }[] = [
   { tab: "result", label: "결과" },
   { tab: "log", label: "처리 기록" },
-  { tab: "data", label: "표와 열" },
+  { tab: "data", label: "테이블과 컬럼" },
 ];
 
-/** 질의 화면. 폭 1280 까지의 틀에 표와 열 · 질문하기 · 처리 기록을 놓는다 (screen.md 2절). */
+/** 질의 화면. 폭 1280 까지의 틀에 테이블과 컬럼 · 질문하기 · 처리 기록을 놓는다 (screen.md 2절). */
 export const Query = () => {
   // 휴대폰에서 고른 탭. 처음은 결과다 (SCR-R015).
   const [tab, setTab] = useState<MobileTab>("result");
@@ -43,8 +43,8 @@ export const Query = () => {
         <ModelStatus />
       </header>
 
-      <aside className={styles.data} aria-label="표와 열" data-mobile-hidden={tab !== "data"}>
-        <h2>표와 열</h2>
+      <aside className={styles.data} aria-label="테이블과 컬럼" data-mobile-hidden={tab !== "data"}>
+        <h2>테이블과 컬럼</h2>
         <TableList />
       </aside>
 

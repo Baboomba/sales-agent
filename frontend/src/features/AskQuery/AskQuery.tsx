@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 
 import type { QueryEvent } from "@/api/types/query";
 import { LoadFailed } from "@/components/LoadFailed";
+import { Skeleton } from "@/components/Skeleton";
 import { ProcessLog } from "@/entities/query/ProcessLog";
 import { QueryResult } from "@/entities/query/QueryResult";
 import { QuerySql } from "@/entities/query/QuerySql";
@@ -15,6 +16,7 @@ import {
   doneEvent,
   failedEvent,
   latestSql,
+  progressText,
   questionToSend,
   sqlHeading,
 } from "./service";
@@ -100,6 +102,7 @@ const QuestionForm = ({ question, pending, onChange, onAsk, onStop }: QuestionFo
         disabled={!pending && questionToSend(question) === null}
         onClick={pending ? onStop : undefined}
       >
+        {pending && <span className={styles.spinner} aria-hidden="true" />}
         {pending ? "중지" : "질문하기"}
       </button>
     </form>
@@ -163,8 +166,17 @@ const ResultCard = ({ events, pending, hidden }: ResultCardProps) => {
   const sql = latestSql(events);
   const failed = failedEvent(events);
   const sqlLabel = sql ? sqlHeading(sql) : "실행한 SQL";
+  // 진행 표시는 늦은 응답에만 보인다 — 빠른 응답에 뼈대가 번쩍이지 않게 (SCR-R002).
+  const loading = pending;
   return (
-    <section className={styles.result} aria-label="결과" data-mobile-hidden={hidden}>
+    <section
+      className={styles.result}
+      aria-label="결과"
+      aria-busy={loading}
+      data-mobile-hidden={hidden}
+    >
+      {/* 기다리는 동안 카드 위 가장자리를 따라 막대가 흐른다. */}
+      {loading && <span className={styles.progressBar} data-testid="progress-bar" />}
       <div className={styles.resultHead}>
         <div>
           <h2>결과</h2>
@@ -187,7 +199,7 @@ const ResultCard = ({ events, pending, hidden }: ResultCardProps) => {
           </p>
         )}
         {tab === "table" ? (
-          <ResultBody events={events} pending={pending} />
+          <ResultBody events={events} loading={loading} />
         ) : sql ? (
           <QuerySql sql={sql.sql} />
         ) : (
@@ -218,15 +230,32 @@ const ResultTabButton = ({ selected, onClick, children }: ResultTabButtonProps) 
 
 interface ResultBodyProps {
   events: QueryEvent[];
-  pending: boolean;
+  loading: boolean;
 }
 
 /** 표 탭의 내용 — 결과 표 · 기다림 · 안내 가운데 하나. 실패면 위의 알림만 둔다. */
-const ResultBody = ({ events, pending }: ResultBodyProps) => {
+const ResultBody = ({ events, loading }: ResultBodyProps) => {
   if (failedEvent(events)) return null;
   const done = doneEvent(events);
   if (done)
     return <QueryResult columns={done.columns} rows={done.rows} truncated={done.truncated} />;
-  if (pending || events.length > 0) return <p className={styles.guide}>답을 만들고 있습니다…</p>;
+  if (loading) return <Waiting text={progressText(events)} />;
+  // 단계를 받았지만 300ms 전이면 비워 둔다 — 곧 끝나거나 곧 뼈대가 뜬다.
+  if (events.length > 0) return null;
   return <p className={styles.guide}>질문하거나 예시 질문을 눌러 보세요.</p>;
 };
+
+interface WaitingProps {
+  text: string;
+}
+
+/** 기다리는 동안의 표 자리 — 도는 표시와 지금 단계, 그 아래 표 모양의 뼈대. */
+const Waiting = ({ text }: WaitingProps) => (
+  <div className={styles.waiting}>
+    <p className={styles.waitingText} role="status">
+      <span className={styles.spinner} aria-hidden="true" />
+      {text}
+    </p>
+    <Skeleton rows={6} columns={3} />
+  </div>
+);

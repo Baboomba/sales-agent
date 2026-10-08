@@ -55,6 +55,32 @@
   background: var(--point-soft);
 }
 
+/* 진행 중인 칸 — 파란 테두리와 도는 고리. 테두리는 굵기가 같아 칸 크기가 바뀌지 않는다. */
+.run {
+  border-color: var(--point);
+}
+
+.ring {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation: none;
+  }
+}
+
 .done .mark {
   color: var(--ok);
   background: var(--ok-soft);

@@ -4,6 +4,7 @@ import {
   attemptSummary,
   doneEvent,
   isAbort,
+  progressText,
   latestSql,
   questionToSend,
   sqlHeading,
@@ -99,5 +100,14 @@ describe("attemptSummary", () => {
       rows: null,
     });
     expect(attemptSummary([])).toEqual({ attempts: 0, retries: 0, rows: null });
+  });
+});
+
+describe("progressText", () => {
+  it("마지막으로 받은 단계의 다음 일을 적는다 (SCR-R002)", () => {
+    expect(progressText([])).toBe("SQL 을 만드는 중");
+    expect(progressText([GENERATED_1])).toBe("SQL 을 검증하는 중");
+    expect(progressText([GENERATED_1, REJECTED_1])).toBe("사유를 붙여 SQL 을 다시 만드는 중");
+    expect(progressText([GENERATED_2, VALIDATED_2])).toBe("SQL 을 실행하는 중");
   });
 });
