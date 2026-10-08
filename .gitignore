@@ -1,0 +1,21 @@
+# 의존성 · 캐시
+node_modules/
+.venv/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.tsbuildinfo
+
+# 빌드 산출물
+frontend/dist/
+backend/static/
+
+# 시드로 만드는 DB (docs/design/data.md)
+backend/data/
+
+# 평가 원자료 — 요약은 docs/eval/README.md 에 남긴다
+backend/evaluation/results/
+
+.DS_Store
+.env
