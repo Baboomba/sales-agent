@@ -1,32 +1,30 @@
 ---
 paths:
-  - "backend/app/query/**"
+  - "backend/app/**"
 ---
 
-# 질의 도메인 규칙
+# 서버 코드 규칙
 
-근거: `docs/architecture.md` 2절 · `docs/design/query.md`
+[코드 아키텍처](../../docs/convention/code-architecture.md) · [코드 컨벤션](../../docs/convention/code-style.md) 1 · 2절의 축약본이다. 다르면 그 문서가 맞다. 모델 · 규칙 ID 는 설계서(`docs/design/`).
 
-## 계층
+## 계층은 다섯이다
 
-| 파일 | 할 수 있는 것 | 할 수 없는 것 |
+| 계층 | 할 수 있는 것 | 할 수 없는 것 |
 |---|---|---|
-| `model.py` | 데이터 형태 정의 | 다른 모듈 import |
-| `rules.py` · `prompt.py` | 순수 함수. 입력 → 출력 | 파일 · 네트워크 · 시각 · 난수 · 프레임워크 import |
-| `ports.py` | Protocol 과 포트가 던지는 예외 | 구현 |
-| `graph.py` | 포트를 받아 그래프 조립 | 어댑터 · `langchain_ollama` import |
-| `api.py` | HTTP ↔ 그래프 이벤트 변환 | 규칙 판단 (판단은 `rules.py` 에) |
-| `adapters/` | 포트 구현. 외부 효과는 여기서만 | 규칙 판단 |
+| `model/` | 설계서 5절의 도메인 객체. 메서드 없는 `@dataclass(frozen=True)`. 업무 용어 | 무엇이든 import (같은 도메인의 모델은 된다), 바깥의 모양(그래프 상태 · 응답 · DB 표 · SQL 방언) 따르기 |
+| `rules/` | 설계서 3절의 규칙. 모델과 인자만으로 판단하는 순수 함수 | 모델 밖 import, 바깥 글(SQL · 오류 문구 · 출력 형식) 해석, 외부 효과 |
+| `dependency/` | 인터페이스(`Protocol`)와 그 실패 | 구현 |
+| `dependency/impl/` | 구현. 바깥을 모델로 옮긴다 | 판단, 바깥 예외 · 객체를 밖으로 내보내기 |
+| `usecase/` | 흐름 하나. 의존성을 부르고 규칙에 판단을 맡긴다. LangGraph 는 여기 안 | `impl` import, 판단, 설정 직접 읽기 |
+| `api/` | HTTP, DTO, 모델 → DTO | 규칙 · 의존성 직접 호출, 판단 |
+| `main.py` | 조립 루트. `impl` 을 아는 유일한 곳 | 업무 로직, import 할 때 앱 만들기 |
 
-경계는 `import-linter` 가 검사한다. 위반하면 `scripts/check.sh` 가 실패한다.
+경계는 `import-linter` 가 검사한다. import 를 함수 안으로 숨겨 피하지 않는다.
 
-## 규칙을 코드에 둘 때
+## 꼭 지킬 것
 
-* 설계서의 규칙 ID 를 함수 문서 문자열에 적는다. 예: `"""QRY-R005 바깥 LIMIT 을 보정한다."""`
-* 한도 · 상한 같은 수는 하드코딩하지 않고 `config.py` 에서 받는다.
-* **판정은 모델에게 맡기지 않는다.** SQL 이 안전한지, 결과가 맞는지는 규칙이 정한다.
-
-## 모델 출력을 다룰 때
-
-* 생성기는 날 문자열만 돌려준다. 해석은 `rules.parse_generation` 한 곳에서 한다.
-* 모델 출력은 신뢰하지 않는 입력이다. 검증 전에는 실행하지 않는다.
+* **모델이 기반이다.** 모델은 코드보다 설계서 5절에서 먼저 정한다.
+* **판단은 규칙에만.** SQL 이 안전한지 모델에게 묻지 않고, 재시도할지도 규칙이 정한다.
+* **실패도 모델이다.** 바깥 오류는 의존성 구현이 실패로 옮기고, 무엇을 할지는 규칙이 정한다. 넓은 `except` 는 유스케이스 입구의 안전망 한 곳뿐.
+* **수는 설정으로.** 상한 · 제한 시간 · 횟수를 박지 않는다.
+* 모듈 첫 줄 `from __future__ import annotations`, 모든 함수에 타입, 규칙 함수의 문서 문자열 첫 줄에 규칙 ID. `# type: ignore` · `# noqa` 금지.
