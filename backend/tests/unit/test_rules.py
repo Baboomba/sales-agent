@@ -50,6 +50,11 @@ def test_qry_r002_multiple_statements_are_rejected() -> None:
     assert "한 문장" in reason_of("SELECT 1; DELETE FROM orders")
 
 
+def test_qry_r002_unclosed_quote_is_rejected() -> None:
+    """QRY-R002 토큰 오류(닫히지 않은 따옴표)도 예외로 새지 않고 거부 사유가 된다."""
+    assert "구문" in reason_of("SELECT 'abc")
+
+
 def test_qry_r002_trailing_semicolon_is_one_statement() -> None:
     """QRY-R002 끝에 붙은 세미콜론 하나는 한 문장이다."""
     assert validate("SELECT store_id FROM stores;").startswith("SELECT")
