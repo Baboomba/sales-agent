@@ -54,9 +54,13 @@ markers = ["integration: 실제 SQLite 파일로 확인한다"]
 # 변이 테스트 — 테스트가 틀린 구현을 잡는지 기계로 확인한다 (docs/convention/review.md 2절).
 # 판단이 있는 계층만 바꿔 본다. 계층이 생기면 여기에 더한다.
 [tool.mutmut]
-source_paths = ["app/query/rules/", "app/query/dependency/impl/sqlglot_analyzer.py"]
+source_paths = [
+    "app/query/rules/",
+    "app/query/dependency/impl/sqlglot_analyzer.py",
+    "app/query/dependency/impl/sqlite_sales_database.py",
+]
 also_copy = ["app/"]
-pytest_add_cli_args_test_selection = ["tests/query/"]
+pytest_add_cli_args_test_selection = ["tests/query/", "tests/integration/test_sqlite_sales_database.py"]
 
 # 의존 방향을 사람이 아니라 검사가 지킨다 (docs/architecture.md 2절).
 [tool.importlinter]
