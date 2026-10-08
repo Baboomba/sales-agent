@@ -9,6 +9,7 @@ from __future__ import annotations
 from app.query.catalog import (
     COLUMN_DESCRIPTIONS,
     FEW_SHOT,
+    ORDER_COUNT_DEFINITION,
     REVENUE_DEFINITION,
     TABLE_DESCRIPTIONS,
 )
@@ -18,7 +19,11 @@ INSTRUCTIONS = f"""너는 SQLite SQL 작성기다. 질문에 답하는 SELECT �
 
 규칙:
 - {REVENUE_DEFINITION}. products.unit_price(정가)로 매출을 계산하지 않는다.
-- 날짜는 'YYYY-MM-DD' 문자열이다. 월은 strftime('%m', o.ordered_on) 이나 BETWEEN 으로 거른다.
+- {ORDER_COUNT_DEFINITION}.
+- 날짜는 'YYYY-MM-DD' 문자열이다. 기간 조건은 질문에 기간이 있을 때만 넣는다.
+- strftime 결과는 문자열이다: '%m' 은 '01'~'12', '%w' 는 '0'(일)~'6'(토). 숫자와 비교하지 않는다.
+- 별칭(o, oi, p, s)으로 쓴 표는 반드시 FROM 이나 JOIN 에 넣는다.
+- 질문에 없는 조건을 WHERE 에 넣지 않는다.
 - 아래 표와 열만 쓴다. 조회만 한다.
 - 출력은 JSON 하나뿐이다: {{"sql": "SELECT ..."}}. 설명을 붙이지 않는다."""
 
