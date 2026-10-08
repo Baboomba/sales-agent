@@ -7,7 +7,7 @@ command=$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("tool_inpu
 
 block() {
   echo "막힘: $1" >&2
-  echo "근거: CLAUDE.md 「이슈와 분기 없이 커밋하지 않는다」 · 「검사를 우회하지 않는다」" >&2
+  echo "근거: AGENTS.md 「이슈와 분기 없이 커밋하지 않는다」 · 「검사를 우회하지 않는다」" >&2
   exit 2
 }
 
