@@ -7,7 +7,7 @@
 ```mermaid
 flowchart TB
   subgraph 컨텍스트["① 컨텍스트 — 무엇을 지켜야 하나"]
-    C1[CLAUDE.md<br/>절대 규칙 · 지도]
+    C1[AGENTS.md<br/>절대 규칙 · 지도]
     C2[.claude/rules<br/>경로별 규칙]
     C3[docs/design<br/>규칙 ID · 테스트 사항]
   end
@@ -29,9 +29,12 @@ flowchart TB
 
 | 자리 | 무엇을 | 언제 읽히나 |
 |---|---|---|
-| `CLAUDE.md` | 절대 규칙, 실행 명령, 저장소 지도 | 세션마다 |
+| `AGENTS.md` | 절대 규칙, 실행 명령, 저장소 지도 | 세션마다 |
+| `CLAUDE.md` | `@AGENTS.md` 한 줄 — 가져오기만 한다 | 세션마다 |
 | `.claude/rules/*.md` | 계층별 할 수 있는 것 · 없는 것 | 해당 경로의 파일을 다룰 때만 (`paths:`) |
 | `docs/design/*.md` | 규칙 ID 와 테스트 사항 | 스킬이 읽게 한다 |
+
+**지침을 `AGENTS.md` 에 두는 이유.** Claude Code 뿐 아니라 다른 코딩 에이전트도 같은 파일을 읽는다. `CLAUDE.md` 를 가져오기로 남긴 것은 `AGENTS.md` 를 직접 읽지 못하는 Claude Code(v2.1.277 미만 등)에서도 같은 지침이 들어가게 하려는 것이다. 새 버전에서도 두 번 읽히지 않는다.
 
 **규칙을 경로별로 나눈 이유.** 한 파일에 모든 규칙을 두면 화면을 고칠 때도 서버 규칙이 컨텍스트를 차지한다. `paths:` 로 범위를 걸어 필요한 규칙만 들어가게 했다.
 
@@ -60,7 +63,7 @@ flowchart TB
 | 타입 | `mypy --strict` · TypeScript `strict` | `scripts/check.sh` |
 | CI | 위 전부를 같은 스크립트로 다시 돌린다. 통과한 커밋만 이미지가 된다 | `.github/workflows/ci.yml` |
 
-**우회 금지도 장치로.** `CLAUDE.md` 가 `skip` · `type: ignore` · 린트 끄기를 금지하고, git 훅이 `--no-verify` 를 막는다.
+**우회 금지도 장치로.** `AGENTS.md` 가 `skip` · `type: ignore` · 린트 끄기를 금지하고, git 훅이 `--no-verify` 를 막는다.
 
 ## ④ 워크플로우 — 여러 에이전트가 교차 검증
 
@@ -102,7 +105,7 @@ flowchart TB
 |---|---|
 | `mypy --strict` | sqlglot 30 에서 기반 타입 이름이 `Expression` → `Expr` 로 바뀐 것을 놓친 반환 타입 |
 | `mypy --strict` | 이벤트로 옮길 때 `str \| None` 을 `str` 자리에 넘긴 것 |
-| `CLAUDE.md` 규칙 | 평가 스크립트에 넣은 `# type: ignore` — 타입을 고쳐 없앴다 |
+| `AGENTS.md` 규칙 | 평가 스크립트에 넣은 `# type: ignore` — 타입을 고쳐 없앴다 |
 | `ruff` | 100자를 넘긴 오류 메시지 |
 | pytest 경고 | 커버리지 검사의 보조 함수 이름이 `test_` 로 시작해 pytest 가 테스트로 잘못 모은 것 |
 | CI (이미지 빌드) | GHCR 이미지 이름은 소문자여야 하는데 저장소 주인 이름(`Baboomba`)에 대문자가 있었다. 로컬 빌드에서는 드러나지 않고 CI 에서만 잡혔다 |
