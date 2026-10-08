@@ -127,7 +127,7 @@
 | AI 에이전트 작업 체계 | `docs/agentic-workflow.md` |
 | 협업 규칙 (작업 흐름 · 커밋 · 라벨 · 서식) | `README.md` 「협업 규칙」 |
 | 경로별 규칙 | `.claude/rules/` — 아래 「코드를 쓰기 전에」 |
-| 스킬 | `.agents/skills/` — `design` · `implement` · `eval`. `.claude/skills/` 는 같은 폴더를 가리키는 링크다 |
+| 스킬 | `.agents/skills/` — `design` · `implement` · `test-review` · `refactor-review` · `eval`. `.claude/skills/` 는 같은 폴더를 가리키는 링크다 |
 | git 훅 (모든 에이전트 · 사람) | `.githooks/` |
 | Claude Code 훅 | `.claude/settings.json` · `.claude/hooks/` |
 | 감사 워크플로우 (Claude Code 전용) | `.claude/workflows/audit.js` |
