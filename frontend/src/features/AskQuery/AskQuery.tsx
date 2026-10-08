@@ -19,7 +19,7 @@ import {
 
 /** 질문하고 진행 · SQL · 결과를 받아 본다 (FR-001 · FR-002 · FR-007). */
 export const AskQuery = () => {
-  const { question, setQuestion, events, running, ask, stop } = useAskQuery();
+  const { question, setQuestion, events, running, pending, ask, stop } = useAskQuery();
   const examples = useExamples();
   const sql = latestSql(events);
   const done = doneEvent(events);
@@ -34,14 +34,17 @@ export const AskQuery = () => {
       <QuestionForm
         question={question}
         running={running}
+        pending={pending}
         onChange={setQuestion}
         onAsk={() => void ask(question)}
         onStop={stop}
       />
       <Examples examples={examples} running={running} onPick={askExample} />
-      {events.length > 0 && <Progress events={events} running={running} />}
-      {sql && <SqlSection event={sql} />}
-      {done && <ResultSection event={done} />}
+      <div className={styles.output}>
+        {(pending || events.length > 0) && <Progress events={events} pending={pending} />}
+        {sql && <SqlSection event={sql} />}
+        {done && <ResultSection event={done} />}
+      </div>
     </div>
   );
 };
@@ -49,13 +52,22 @@ export const AskQuery = () => {
 interface QuestionFormProps {
   question: string;
   running: boolean;
+  /** 응답이 늦어 중지를 보일 때. 빠른 응답에는 단추가 바뀌지 않는다 (#63). */
+  pending: boolean;
   onChange: (question: string) => void;
   onAsk: () => void;
   onStop: () => void;
 }
 
 /** 질문 입력칸과 질문하기 · 중지 단추. */
-const QuestionForm = ({ question, running, onChange, onAsk, onStop }: QuestionFormProps) => {
+const QuestionForm = ({
+  question,
+  running,
+  pending,
+  onChange,
+  onAsk,
+  onStop,
+}: QuestionFormProps) => {
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     onAsk();
@@ -74,11 +86,12 @@ const QuestionForm = ({ question, running, onChange, onAsk, onStop }: QuestionFo
         onChange={(e) => onChange(e.target.value)}
         disabled={running}
       />
-      {running ? (
+      {pending ? (
         <button type="button" onClick={onStop}>
           중지
         </button>
       ) : (
+        // 묻는 동안 끄지 않는다 — 빠른 응답에 단추가 흐려졌다 돌아와 깜빡인다 (#63). 두 번 보내기는 ask 가 막는다.
         <button type="submit" disabled={questionToSend(question) === null}>
           질문하기
         </button>
@@ -106,13 +119,13 @@ const Examples = ({ examples, running, onPick }: ExamplesProps) => (
 
 interface ProgressProps {
   events: QueryEvent[];
-  running: boolean;
+  pending: boolean;
 }
 
-const Progress = ({ events, running }: ProgressProps) => (
+const Progress = ({ events, pending }: ProgressProps) => (
   <>
     <h2>진행</h2>
-    <QuerySteps events={events} running={running} />
+    <QuerySteps events={events} running={pending} />
   </>
 );
 

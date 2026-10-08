@@ -1,7 +1,13 @@
+/* 크기와 폭을 고정한다. 내용이 오고 가도 틀이 움직이지 않는다 (#63).
+   질문 열 808 + 간격 32 + 데이터 열 280 = 1120. 높이 640 안에서 각 칸이 스크롤한다. */
 .page {
-  max-width: 1120px;
+  width: 1120px;
   margin: 0 auto;
-  padding: 32px 16px 64px;
+  padding: 32px 0 64px;
+}
+
+.header {
+  height: 64px;
 }
 
 .header h1 {
@@ -16,9 +22,15 @@
 
 .main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: 808px 280px;
+  grid-template-rows: 640px;
   gap: 32px;
   margin-top: 28px;
+}
+
+.aside {
+  height: 640px;
+  overflow-y: auto;
 }
 
 .aside h2 {
@@ -27,8 +39,19 @@
   color: var(--muted);
 }
 
-@media (max-width: 800px) {
+/* 좁은 화면에서만 한 열로 쌓는다. 칸의 높이는 그대로 고정이다. */
+@media (max-width: 1152px) {
+  .page {
+    width: auto;
+    padding: 32px 16px 64px;
+  }
+
   .main {
-    grid-template-columns: 1fr;
+    grid-template-columns: 100%;
+    grid-template-rows: 640px 320px;
+  }
+
+  .aside {
+    height: 320px;
   }
 }
