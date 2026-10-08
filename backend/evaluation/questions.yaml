@@ -35,9 +35,10 @@
   type: 날짜
   question: 월별 주문 건수를 1월부터 보여줘
   ordered: true
+  # 1차에서 고침: 월 표기('01' 과 '2025-01')는 둘 다 맞는 답이다. 표기가 아니라 건수를 순서대로 본다.
   sql: |
-    SELECT strftime('%m', ordered_on) AS month, COUNT(*) FROM orders
-    GROUP BY month ORDER BY month
+    SELECT COUNT(*) FROM orders
+    GROUP BY strftime('%m', ordered_on) ORDER BY strftime('%m', ordered_on)
 
 - id: E05
   type: 집계
