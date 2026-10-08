@@ -6,10 +6,11 @@ from app.query.model.failure import ExecutionFailure, ExecutionFailureKind, Quer
 
 
 def execution_failure_reason(failure: ExecutionFailure, limits: QueryLimits) -> str:
-    """QRY-R015 실행 실패를 다음 생성에 넘길 사유로 옮긴다.
+    """QRY-R015 · QRY-R009 실행 실패를 다음 생성에 넘길 사유로 옮긴다.
 
-    별칭의 표 없음이면 그 별칭의 표를 JOIN 하라는 안내를 붙인다. 오류 글만으로는 작은 모델이
-    고칠 곳을 찾지 못한다 (설계서 3절 근거).
+    별칭의 표 없음이면 그 별칭의 표를 JOIN 하라는 안내를 붙인다 (QRY-R015). 오류 글만으로는
+    작은 모델이 고칠 곳을 찾지 못한다 (설계서 3절 근거). 시간 초과면 제한 시간과 더 가벼운
+    질의로 바꾸라는 안내를 준다 (QRY-R009).
     """
     match failure.kind:
         case ExecutionFailureKind.TIMEOUT:

@@ -20,9 +20,10 @@ def after_rejection(
 def after_generation_failure(
     attempt: int, failure: GenerationFailure, limits: QueryLimits
 ) -> Rejected | Failed:
-    """QRY-R013 모델 서버 장애면 다시 생성하지 않고 장애 종류를 알 수 있는 사유로 끝낸다.
+    """QRY-R013 · QRY-R010 생성 실패 뒤에 무엇을 할지 정한다.
 
-    출력 형식 실패는 장애가 아니다 — 다른 판정 실패처럼 다시 생성한다 (QRY-R010).
+    모델 서버 장애면 다시 생성하지 않고 장애 종류를 알 수 있는 사유로 끝낸다 (QRY-R013).
+    출력 형식 실패는 장애가 아니다 — 생성기가 지은 세부를 사유로 다시 생성한다 (QRY-R010).
     """
     match failure.kind:
         case GenerationFailureKind.FORMAT:

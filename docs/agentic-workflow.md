@@ -93,7 +93,7 @@ flowchart TB
 | 타입 | `mypy --strict` · TypeScript `strict` | `scripts/check.sh` |
 | 변이 테스트 | 테스트가 틀린 구현(비교 · 조건 · 값 · 반환을 바꾼 것)을 잡지 못하는 자리. 검사자가 아니라 기계가 먼저 찾는다 | `scripts/mutate.sh` (mutmut) |
 | 다시 검사의 범위 | 고친 뒤 다시 검사에 범위 전체를 넘겨 지적이 부풀어 오르는 것 | `scripts/review-scope.sh` |
-| CI | 위 전부를 같은 스크립트로 다시 돌린다. 통과한 커밋만 이미지가 된다 | `.github/workflows/ci.yml` |
+| CI | `scripts/check.sh` 를 다시 돌린다 — 린트 · 포맷 · 타입 · 계층 경계 · 규칙 커버리지 · 테스트 · 화면 빌드. 변이 테스트 · 다시 검사 범위 · 훅은 CI 가 돌리지 않는다. 통과한 커밋만 이미지가 된다 | `.github/workflows/ci.yml` |
 
 **우회 금지도 장치로.** `AGENTS.md` 가 `skip` · `type: ignore` · 린트 끄기를 금지하고, Claude Code 훅이 `--no-verify` 를 막는다. `--no-verify` 는 git 훅 자체를 건너뛰므로 git 훅으로는 막을 수 없다 — 다른 에이전트에게는 지침으로만 금지되고, 원격 룰셋이 마지막 방어선이다.
 

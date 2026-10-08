@@ -59,6 +59,7 @@
 * 코드는 `docs/design/` 의 설계서를 따른다. 설계서는 `docs/requirements.md` 의 요구사항을 충족해야 한다. 요구사항에 없는 기능을 설계서에 넣지 않는다.
 * **설계서가 정본이다.** 설계서에 없는 동작을 코드에 넣지 않는다. 필요하면 설계서를 먼저 고치고(사용자 확인) 그다음 구현한다. 설계서 작업은 `design` 스킬이 소유한다.
 * 규칙에는 ID 가 있다(`QRY-R001` …). 규칙을 더하면 4절 테스트 사항도 함께 더한다.
+* **설계서가 없는 영역**(`scripts/` · 훅 · 설정 같은 장치, 화면 설계서가 생기기 전의 화면)은 **이슈 본문이 근거다** — `implement` 스킬 1단계.
 
 ### 검사를 우회하지 않는다
 
@@ -139,7 +140,7 @@
 | AI 에이전트 작업 체계 | `docs/agentic-workflow.md` |
 | 협업 규칙 (작업 흐름 · 커밋 · 라벨 · 서식) | `README.md` 「협업 규칙」 |
 | 경로별 규칙 | `.claude/rules/` — 아래 「코드를 쓰기 전에」 |
-| 스킬 | `.agents/skills/` — `design` · `implement` · `test-review` · `refactor-review` · `eval`. `.claude/skills/` 는 같은 폴더를 가리키는 링크다 |
+| 스킬 | `.agents/skills/` — `design` · `implement` · `test-review` · `refactor-review` · `eval`. `.claude/skills/<이름>` 은 스킬마다 하나씩 둔 링크다 — 스킬을 새로 만들면 링크도 하나 더 만든다 (`ln -s ../../.agents/skills/<이름> .claude/skills/<이름>`) |
 | git 훅 (모든 에이전트 · 사람) | `.githooks/` |
 | Claude Code 훅 | `.claude/settings.json` · `.claude/hooks/` |
 | 감사 워크플로우 (Claude Code 전용) | `.claude/workflows/audit.js` |

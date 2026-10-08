@@ -64,7 +64,7 @@ class Rejected:
 
 @dataclass(frozen=True)
 class Validated:
-    sql: str  # 행 상한을 붙인 것 — 실행되는 SQL 그대로
+    sql: str  # 실행되는 SQL 그대로 — 행 상한을 붙였거나, 붙일 것이 없으면 생성 SQL 글 그대로
 
 
 @dataclass(frozen=True)

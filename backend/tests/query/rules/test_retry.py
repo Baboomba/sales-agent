@@ -94,8 +94,8 @@ def test_qry_r013_timeout_reason_names_the_generation_timeout() -> None:
 
 
 @pytest.mark.parametrize("attempt", [1, 2])
-def test_qry_r013_format_failure_is_not_an_outage_and_regenerates(attempt: int) -> None:
-    """QRY-R013 출력 형식 실패는 장애가 아니다. 한도 안이면 세부를 사유로 붙여 다시 생성한다."""
+def test_qry_r010_format_failure_is_not_an_outage_and_regenerates(attempt: int) -> None:
+    """QRY-R010 출력 형식 실패는 장애가 아니다. 한도 안이면 세부를 사유로 붙여 다시 생성한다."""
     step = after_generation_failure(attempt, GenerationFailure(FORMAT, FORMAT_DETAIL), LIMITS)
     assert isinstance(step, Rejected)
     assert (step.attempt, step.stage) == (attempt, Stage.GENERATE)
