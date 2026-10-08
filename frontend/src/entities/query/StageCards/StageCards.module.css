@@ -1,0 +1,97 @@
+/* 단계 칸 — 세 칸 모두 높이 72 고정 (SCR-R001). */
+/* minmax(0, 1fr) — 덧말이 길어져도 칸 폭이 늘지 않는다. 넘치는 덧말은 말줄임한다. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 72px;
+  padding: 0 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.text {
+  min-width: 0;
+}
+
+.mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-3);
+  background: var(--surface);
+}
+
+.title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.note {
+  display: block;
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.run .mark {
+  color: var(--point);
+  background: var(--point-soft);
+}
+
+.done .mark {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.fail .mark {
+  color: var(--bad);
+  background: var(--bad-soft);
+}
+
+.fail .note {
+  color: var(--bad);
+}
+
+@media (max-width: 1023px) {
+  .cards {
+    gap: 8px;
+  }
+
+  .card {
+    height: 64px;
+    padding: 0 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .mark {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
+
+  .title {
+    font-size: 13px;
+  }
+
+  .note {
+    font-size: 11px;
+  }
+}

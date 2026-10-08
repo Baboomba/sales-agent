@@ -1,24 +1,89 @@
+/* minmax(0, 1fr) — 긴 열 이름 · 설명이 칸 폭을 밀어내지 않는다. 넘치는 설명은 말줄임한다. */
 .panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
-  font-size: 13px;
 }
 
 .table summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  list-style: none;
   cursor: pointer;
-  padding: 6px 0;
+  transition: background 0.15s;
 }
 
-.table ul {
-  margin: 4px 0 8px;
-  padding-left: 18px;
-  color: var(--muted);
+.table summary::-webkit-details-marker {
+  display: none;
 }
 
-.table li {
-  padding: 2px 0;
+.table summary:hover {
+  background: var(--surface);
 }
 
-.table code {
-  color: var(--text);
+.table[open] summary {
+  background: var(--point-soft);
+}
+
+.icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--point);
+  background: var(--surface);
+}
+
+.table[open] .icon {
+  background: #fff;
+}
+
+.table summary > span:last-child {
+  min-width: 0;
+}
+
+.name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.desc {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+
+.cols {
+  padding: 8px 12px 12px 50px;
+}
+
+.cols li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.cols code {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-1);
+}
+
+.cols span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

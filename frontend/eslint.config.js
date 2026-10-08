@@ -65,7 +65,7 @@ export default tseslint.config(
   {
     files: ["src/components/**"],
     rules: restrict(
-      ["@/pages/*", "@/features/*", "@/entities/*", "@/api/*", "@/context/*"],
+      ["@/pages/*", "@/features/*", "@/entities/*", "@/api/*", "@/context/*", "@/common/values"],
       "부품은 도메인을 모른다.",
     ),
   },

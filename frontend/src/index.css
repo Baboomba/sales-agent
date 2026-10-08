@@ -1,41 +1,96 @@
+/* 기틀 값 — 화면 설계서(docs/design/screen.md)와 시안(screen-mockup.html)의 색 · 모서리 · 그림자.
+   색은 바탕 · 글자 · 포인트(남색) 1개에 신호색만 더한다. */
 :root {
-  --bg: #f7f7f5;
-  --surface: #ffffff;
-  --text: #1d1d1f;
-  --muted: #6b6b70;
-  --border: #e3e3e0;
-  --accent: #2f6fed;
-  --ok: #1f9d55;
-  --warn: #d98e04;
-  --danger: #d1453b;
-  color-scheme: light dark;
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --surface: #f1f4f9;
+  --line: #e3e8f0;
+  --text-1: #141a26;
+  --text-2: #545d6b;
+  --text-3: #98a1ae;
+  --point: #1e40af;
+  --point-d: #1a3792;
+  --point-soft: #eaf0fd;
+  --ok: #12805c;
+  --ok-soft: #e6f6ef;
+  --warn: #b45309;
+  --warn-soft: #fef3e2;
+  --bad: #c43a3a;
+  --bad-soft: #fdecec;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --sh-1: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141416;
-    --surface: #1d1d20;
-    --text: #ececef;
-    --muted: #9a9aa2;
-    --border: #2e2e33;
-    --accent: #5b8cff;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   font-family:
-    "Pretendard",
-    system-ui,
+    "Pretendard Variable",
+    Pretendard,
     -apple-system,
     "Apple SD Gothic Neo",
     sans-serif;
-  line-height: 1.5;
-  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
   background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+input {
+  font: inherit;
+  color: inherit;
 }
 
 code,
 pre {
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-family: var(--mono);
+}
+
+/* 화면에는 안 보이고 스크린 리더만 읽는 글. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 휴대폰에서 고르지 않은 탭의 칸을 숨긴다 (SCR-R015). PC 에서는 셋 다 보인다. */
+@media (max-width: 1023px) {
+  [data-mobile-hidden="true"] {
+    display: none !important;
+  }
 }
