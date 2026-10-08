@@ -103,6 +103,7 @@ main ──▶ api · usecase · dependency/impl · config
 | 모델은 아무것도 모른다 | 모델이 같은 도메인의 모델 밖을 import |
 | 규칙은 모델과 규칙만 안다 | 규칙이 의존성 · 유스케이스 · 바깥 라이브러리를 import |
 | 구현은 조립 루트만 안다 | `api` · `usecase` · `rules` · `model` 이 `dependency.impl` 을 import |
+| API 는 유스케이스만 부른다 | `api` 가 `rules` · `dependency` 를 import (2.5) |
 
 **경계를 피하려고 import 를 함수 안으로 숨기지 않는다.** 검사를 통과해도 구조가 무너진 것이다.
 

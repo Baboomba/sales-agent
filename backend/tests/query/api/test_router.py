@@ -22,12 +22,12 @@ from app.query.model.failure import (
 )
 from app.query.model.question import Column, Question, Table
 from app.query.model.run import QueryResult
-from app.query.model.sql import GeneratedSql, SqlShape, TableRef
+from app.query.model.sql import GeneratedSql
 from app.query.model.terms import TERMS
 from app.query.usecase.lookup import Lookup
 from app.query.usecase.query_flow import QueryFlow
 from tests.query.fake import ScriptedAnalyzer, ScriptedDatabase, ScriptedGenerator
-from tests.query.support import assert_reason, read_sse
+from tests.query.support import assert_reason, passing_shape, read_sse
 
 LIMITS = QueryLimits(
     max_attempts=3, row_limit=7, generation_timeout_seconds=13, query_timeout_seconds=4
@@ -43,15 +43,7 @@ TERMS_FOR_TEST = replace(
     example_questions=("zzz 둘째 질문", "zzz 첫 질문"),
 )
 # 판정을 통과하고 붙일 행 상한이 없는 SQL 구성.
-PASSING = SqlShape(
-    parse_error=None,
-    statement_count=1,
-    is_query=True,
-    forbidden=(),
-    tables=(TableRef("zzz_sales"),),
-    cte_names=(),
-    outer_limit=3,
-)
+PASSING = passing_shape("zzz_sales")
 
 
 def client_for(

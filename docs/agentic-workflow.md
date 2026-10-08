@@ -88,7 +88,7 @@ flowchart TB
 | 포맷 훅 | 에이전트가 고친 파일을 바로 포맷한다. 포맷 차이로 검사가 실패하는 왕복이 없다 | `.claude/hooks/format.sh` (Claude Code, PostToolUse) |
 | git 차단 훅 | `main` 직접 커밋 · 푸시, `--no-verify`, `--force` 를 실행 전에 막는다 | `.claude/hooks/guard-git.sh` (Claude Code, PreToolUse) |
 | git 훅 | `main` 직접 커밋 · 푸시와 포맷 안 된 파일의 커밋을 막는다. 어느 에이전트든 사람이든 걸린다 | `.githooks/pre-commit` · `pre-push` |
-| 계층 경계 | `rules.py` 가 LangGraph 를 import 하거나 그래프가 어댑터를 import 하면 실패 | `import-linter` |
+| 계층 경계 | 규칙이 LangGraph 를 import 하거나 유스케이스가 의존성 구현을 import 하면 실패 ([코드 아키텍처](convention/code-architecture.md) 3절) | `import-linter` |
 | 규칙 커버리지 | 설계서의 규칙 ID 가 테스트에 없거나, 테스트가 없는 ID 를 적으면 실패 | `tests/test_rule_coverage.py` |
 | 타입 | `mypy --strict` · TypeScript `strict` | `scripts/check.sh` |
 | 변이 테스트 | 테스트가 틀린 구현(비교 · 조건 · 값 · 반환을 바꾼 것)을 잡지 못하는 자리. 검사자가 아니라 기계가 먼저 찾는다 | `scripts/mutate.sh` (mutmut) |

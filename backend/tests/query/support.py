@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from app.query.model.sql import SqlShape, TableRef
+
 
 def assert_reason(reason: object) -> str:
     """사유가 글이고 비어 있지 않은지 본다. None · 빈 글 · 공백뿐인 글이면 실패한다.
@@ -32,3 +34,16 @@ def read_sse(body: str) -> list[tuple[str, dict[str, Any]]]:
         data = json.loads(data_line.removeprefix("data: "))
         events.append((event_line.removeprefix("event: "), data))
     return events
+
+
+def passing_shape(*tables: str, cte_names: tuple[str, ...] = ()) -> SqlShape:
+    """판정을 통과하고 붙일 행 상한이 없는(바깥 행 상한 3) SQL 구성."""
+    return SqlShape(
+        parse_error=None,
+        statement_count=1,
+        is_query=True,
+        forbidden=(),
+        tables=tuple(TableRef(name) for name in tables),
+        cte_names=cte_names,
+        outer_limit=3,
+    )
