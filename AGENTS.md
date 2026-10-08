@@ -117,6 +117,8 @@
 |---|---|
 | 요구사항 (모든 설계의 근거) | `docs/requirements.md` |
 | 아키텍처 · 기술 선택 근거 | `docs/architecture.md` |
+| 코드 아키텍처 (계층 · 의존 방향 · 실패를 나누는 법) | `docs/convention/code-architecture.md` |
+| 코드 컨벤션 (작성 규칙 · 도구) | `docs/convention/code-style.md` |
 | 질의 도메인 설계 (규칙 ID · 테스트 사항) | `docs/design/query.md` |
 | 데이터 설계 | `docs/design/data.md` |
 | 평가 방법과 모델 선정 결과 | `docs/eval/README.md` |
@@ -153,8 +155,10 @@ git config core.hooksPath .githooks
 
 먼저 `implement` 스킬을 부른다. 그다음 작업 경로의 규칙 파일을 읽는다. Claude Code 는 자동으로 읽지만, **새 파일을 처음 만들 때는 자동으로 안 읽힐 수 있으니** 어느 에이전트든 직접 읽고 시작한다.
 
-| 작업 경로 | 규칙 파일 |
-|---|---|
-| `backend/app/query/**` | `.claude/rules/query-domain.md` |
-| `backend/tests/**` | `.claude/rules/backend-test.md` |
-| `frontend/src/**` | `.claude/rules/frontend.md` |
+규칙 파일은 축약본이다. 근거와 예시는 `docs/convention/` 이 갖고, 둘이 다르면 `docs/convention/` 이 맞다.
+
+| 작업 경로 | 규칙 파일 | 정본 |
+|---|---|---|
+| `backend/app/**` | `.claude/rules/backend-app.md` | `code-architecture.md` 1 ~ 5절 · `code-style.md` 1 · 2절 |
+| `backend/tests/**` | `.claude/rules/backend-test.md` | 테스트 규칙 (#38) |
+| `frontend/src/**` | `.claude/rules/frontend.md` | `code-architecture.md` 6절 · `code-style.md` 1 · 3절 |
