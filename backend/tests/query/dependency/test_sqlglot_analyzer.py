@@ -42,12 +42,37 @@ def test_qry_r002_two_statements_are_counted_as_two() -> None:
         "; SELECT store_id FROM stores",
         "SELECT store_id FROM stores;;",
         ";;SELECT store_id FROM stores",
+        "SELECT store_id FROM stores; -- done",
+        "SELECT store_id FROM stores; /* done */",
     ],
-    ids=["trailing", "leading", "doubled-trailing", "doubled-leading"],
+    ids=[
+        "trailing",
+        "leading",
+        "doubled-trailing",
+        "doubled-leading",
+        "trailing-line-comment",
+        "trailing-block-comment",
+    ],
 )
 def test_qry_r002_empty_statements_around_one_statement_do_not_count(sql: str) -> None:
-    """QRY-R002 앞뒤에 붙거나 겹친 세미콜론이 만드는 빈 문장은 세지 않는다 — 문장 하나다."""
+    """QRY-R002 앞뒤에 붙거나 겹친 세미콜론이 만드는 빈 문장은 세지 않는다 — 문장 하나다.
+
+    끝 세미콜론에 주석이 붙어도 같다 (#46).
+    """
     assert ANALYZER.analyze(sql) == plain(TableRef("stores"))
+
+
+@pytest.mark.parametrize(
+    "sql",
+    ["SELECT 1; DELETE /* zzz */ FROM orders", "SELECT 1; -- zzz\nDELETE FROM orders"],
+    ids=["comment-inside-second", "comment-before-second"],
+)
+def test_qry_r002_statement_after_a_comment_still_counts(sql: str) -> None:
+    """QRY-R002 주석이 붙어도 뒤에 오는 진짜 문장은 센다 (#46).
+
+    주석 붙은 끝 세미콜론을 세지 않는 테스트의 짝이다.
+    """
+    assert ANALYZER.analyze(sql).statement_count == 2
 
 
 @pytest.mark.parametrize("sql", ["", ";", "  "], ids=["empty", "semicolon", "spaces"])
@@ -201,6 +226,104 @@ def test_qry_r004_references_are_kept_even_with_ctes(sql: str, expected: set[Tab
     규칙에 닿지 않는다 (감사 #17).
     """
     assert set(ANALYZER.analyze(sql).tables) == expected
+
+
+@pytest.mark.parametrize(
+    ("sql", "expected"),
+    [
+        (
+            "SELECT * FROM orders WHERE ('table', 'x') IN sqlite_master",
+            {TableRef("orders"), TableRef("sqlite_master")},
+        ),
+        (
+            "SELECT * FROM orders WHERE 1 IN main.sqlite_master",
+            {TableRef("orders"), TableRef("sqlite_master", Qualifier.DEFAULT_SCHEMA)},
+        ),
+        (
+            "SELECT * FROM orders WHERE 1 IN aux.sqlite_master",
+            {TableRef("orders"), TableRef("sqlite_master", Qualifier.OTHER_SCHEMA)},
+        ),
+        (
+            "SELECT * FROM orders WHERE 1 IN zzz_db.main.sqlite_master",
+            {TableRef("orders"), TableRef("sqlite_master", Qualifier.OTHER_SCHEMA)},
+        ),
+        (
+            "SELECT * FROM orders WHERE 1 IN json_each('[1]')",
+            {TableRef("orders"), TableRef("json_each", is_function=True)},
+        ),
+        (
+            "SELECT * FROM orders WHERE 1 IN main.pragma_table_list()",
+            {
+                TableRef("orders"),
+                TableRef("pragma_table_list", Qualifier.DEFAULT_SCHEMA, is_function=True),
+            },
+        ),
+        (
+            "SELECT * FROM orders WHERE 1 IN aux.zzz_f()",
+            {TableRef("orders"), TableRef("zzz_f", Qualifier.OTHER_SCHEMA, is_function=True)},
+        ),
+        (
+            "SELECT * FROM orders WHERE 1 IN zzz_db.main.zzz_f()",
+            {TableRef("orders"), TableRef("zzz_f", Qualifier.OTHER_SCHEMA, is_function=True)},
+        ),
+        ("SELECT * FROM orders WHERE 1 IN (1, 2)", {TableRef("orders")}),
+    ],
+    ids=[
+        "in-table",
+        "in-main",
+        "in-other-schema",
+        "in-catalog",
+        "in-function",
+        "in-main-function",
+        "in-other-schema-function",
+        "in-catalog-function",
+        "in-values",
+    ],
+)
+def test_qry_r004_in_table_and_in_function_are_references(
+    sql: str, expected: set[TableRef]
+) -> None:
+    """QRY-R004 `IN 표이름` 은 표 참조로, `IN 표 값 함수()` 는 함수 참조로 옮긴다 (#46).
+
+    sqlglot 은 이 자리의 표 이름을 열로, 함수를 일반 함수로 읽는다. 값 목록 `IN (1, 2)` 는
+    표 참조가 아니다 — 위 셋의 짝.
+    """
+    assert set(ANALYZER.analyze(sql).tables) == expected
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT name FROM sqlite_master, "
+        "(WITH sqlite_master AS (SELECT 1) SELECT * FROM sqlite_master)",
+        "SELECT * FROM orders WHERE 1 IN (WITH zzz_t AS (SELECT 1) SELECT * FROM zzz_t)",
+    ],
+    ids=["masking-subquery", "in-subquery"],
+)
+def test_qry_r004_cte_inside_a_subquery_is_not_a_cte_name(sql: str) -> None:
+    """QRY-R004 하위 질의 안의 CTE 이름은 CTE 이름으로 옮기지 않는다 (#46).
+
+    옮기면 바깥의 `sqlite_master` 까지 CTE 로 쳐져 내부 표가 열린다.
+    """
+    assert ANALYZER.analyze(sql).cte_names == ()
+
+
+def test_qry_r004_with_inside_a_cte_body_is_not_a_cte_name() -> None:
+    """QRY-R004 CTE 몸체 안의 WITH 도 맨 바깥 WITH 가 아니다 — 바깥 CTE 이름만 옮긴다 (#46).
+
+    하위 질의 밖에 있다고 CTE 로 치면, 몸체 안의 `sqlite_master` CTE 가 바깥의 내부 표를 가린다.
+    """
+    shape = ANALYZER.analyze(
+        "WITH zzz_a AS (WITH sqlite_master AS (SELECT 1) SELECT * FROM sqlite_master) "
+        "SELECT * FROM zzz_a, sqlite_master"
+    )
+    assert shape.cte_names == ("zzz_a",)
+
+
+def test_outer_with_of_a_union_is_collected() -> None:
+    """맨 바깥 WITH 는 UNION 에 붙어도 CTE 이름이다 — 위 테스트의 짝."""
+    shape = ANALYZER.analyze("WITH zzz_a AS (SELECT 1) SELECT * FROM zzz_a UNION SELECT 2")
+    assert shape.cte_names == ("zzz_a",)
 
 
 def test_every_cte_name_is_collected() -> None:
