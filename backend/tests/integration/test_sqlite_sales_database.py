@@ -127,7 +127,7 @@ def test_qry_r008_write_is_refused_by_the_database(db_path: Path, sql: str) -> N
 
 def test_qry_r009_heavy_query_is_interrupted_as_timeout(db_path: Path) -> None:
     """QRY-R009 제한 시간을 넘는 질의는 끊기고 실행 실패(시간 초과)가 된다."""
-    failure = database(db_path, timeout_seconds=1).execute(ENDLESS, fetch=10)
+    failure = database(db_path, timeout_seconds=0.2).execute(ENDLESS, fetch=10)
     assert isinstance(failure, ExecutionFailure)
     assert failure.kind is ExecutionFailureKind.TIMEOUT
 
@@ -142,7 +142,7 @@ def test_query_within_the_timeout_finishes(db_path: Path) -> None:
         "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 10000) "
         "SELECT COUNT(*) FROM n"
     )
-    result = database(db_path, timeout_seconds=1).execute(counted, fetch=10)
+    result = database(db_path, timeout_seconds=0.2).execute(counted, fetch=10)
     assert result == QueryResult(("COUNT(*)",), ((10000,),))
 
 
@@ -155,7 +155,7 @@ def test_qry_r009_timeout_after_the_first_row_is_also_a_timeout(db_path: Path) -
         "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n) "
         "SELECT x FROM n WHERE x = 1 OR x < 0"
     )
-    failure = database(db_path, timeout_seconds=1).execute(first_row_then_endless, fetch=3)
+    failure = database(db_path, timeout_seconds=0.2).execute(first_row_then_endless, fetch=3)
     assert isinstance(failure, ExecutionFailure)
     assert failure.kind is ExecutionFailureKind.TIMEOUT
 

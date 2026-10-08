@@ -47,7 +47,7 @@ async def ask(
 async def test_ollama_address_and_generation_timeout_reach_the_generator(tmp_path: Path) -> None:
     """설정의 주소 · 생성 제한 시간이 Ollama 연결에 닿는다 (설계서 5.3).
 
-    응답하지 않는 서버에 0.5초로 닿으면 시간 초과로 끝나고, 사유에 그 제한 시간이 있다
+    응답하지 않는 서버에 0.2초로 닿으면 시간 초과로 끝나고, 사유에 그 제한 시간이 있다
     (QRY-R013). 주소가 안 닿으면 연결 실패, 제한 시간이 안 닿으면 끝나지 않는다.
     """
 
@@ -58,7 +58,7 @@ async def test_ollama_address_and_generation_timeout_reach_the_generator(tmp_pat
     port = server.sockets[0].getsockname()[1]
     settings = Settings(
         ollama_base_url=f"http://127.0.0.1:{port}",
-        generation_timeout_seconds=0.5,
+        generation_timeout_seconds=0.2,
         # 실행 제한 시간은 아래 상한(10초)보다 길게 둔다 — 두 제한 시간을 바꿔 끼운 구현을 가른다.
         query_timeout_seconds=30,
         max_attempts=1,
@@ -74,7 +74,7 @@ async def test_ollama_address_and_generation_timeout_reach_the_generator(tmp_pat
     assert len(events) == 1
     name, data = events[0]
     assert name == "failed"
-    assert "0.5" in data["reason"]
+    assert "0.2" in data["reason"]
 
 
 async def test_query_timeout_reaches_the_database(tmp_path: Path) -> None:
