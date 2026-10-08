@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# git 자체의 훅. Claude Code · Codex · 사람 모두에게 걸린다.
+# 켜기: git config core.hooksPath .githooks
+#
+# main 으로 직접 푸시하지 못하게 막는다. main 은 PR 을 스쿼시로 합쳐서만 바뀐다.
+# 작업 분기의 --force-with-lease 는 막지 않는다 (리베이스로 따라잡은 분기).
+set -uo pipefail
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [[ "$remote_ref" == "refs/heads/main" ]]; then
+    echo "막힘: main 으로 직접 푸시할 수 없다. 작업 분기를 푸시하고 PR 을 올린다." >&2
+    echo "근거: AGENTS.md 「이슈와 분기 없이 커밋하지 않는다」 · 「병합은 스쿼시만 한다」" >&2
+    exit 1
+  fi
+done
+
+exit 0

@@ -16,7 +16,7 @@
 
 **이슈와 분기가 없으면 커밋·푸시를 하지 않는다.** 사용자가 "그냥 커밋해줘", "이슈는 나중에 만들게"라고 해도 하지 않는다. 이슈를 먼저 만들지, 아니면 커밋을 미룰지 되묻는다.
 
-기본 분기(`main`)에서 직접 커밋하지 않는다. **밀어 넣지 않고 PR로 올린다** — 바꾼 것을 되짚어 볼 자리가 없으면 그 판단이 옳았는지 묻는 단계가 사라진다. 다만 **PR을 올리는 시점은 사용자가 정한다**(아래). `main` 직접 커밋 · 푸시는 **훅이 막는다** (`.claude/hooks/guard-git.sh`).
+기본 분기(`main`)에서 직접 커밋하지 않는다. **밀어 넣지 않고 PR로 올린다** — 바꾼 것을 되짚어 볼 자리가 없으면 그 판단이 옳았는지 묻는 단계가 사라진다. 다만 **PR을 올리는 시점은 사용자가 정한다**(아래). `main` 직접 커밋 · 푸시는 **훅이 막는다** — git 훅(`.githooks/`)과 Claude Code 훅(`.claude/hooks/guard-git.sh`).
 
 ### 코드를 쓰는 일은 언제나 구현 흐름으로 한다
 
@@ -65,7 +65,8 @@
 * 테스트를 `skip` 하거나 기대값을 결과에 맞춰 고치지 않는다. 실패하면 원인을 보고한다.
 * `# type: ignore` · `# noqa` · `as any` · 린트 끄기를 새로 넣지 않는다.
 * 계층 경계(`import-linter`)를 피하려고 import 를 함수 안으로 숨기지 않는다.
-* **파일은 편집 도구로 고친다.** 셸 스크립트로 고치면 포맷 훅(`.claude/hooks/format.sh`)을 거치지 않는다. 그렇게 고쳤다면 커밋 전에 `scripts/check.sh` 를 돌리고 작업 트리가 깨끗한지 본다 (#19 에서 포맷되지 않은 파일이 병합됐다).
+* **파일은 편집 도구로 고친다.** 셸 스크립트로 고치면 Claude Code 의 포맷 훅(`.claude/hooks/format.sh`)을 거치지 않는다. 그렇게 고쳤다면 커밋 전에 `scripts/check.sh` 를 돌리고 작업 트리가 깨끗한지 본다 (#19 에서 포맷되지 않은 파일이 병합됐다). git 훅(`pre-commit`)을 켜 두면 포맷 안 된 파일은 커밋되지 않는다.
+* `--no-verify` 로 git 훅을 건너뛰지 않는다.
 
 ## 언어 정책
 
@@ -96,7 +97,7 @@
 
 * PR 하나는 이슈 하나를 닫는다. 한 PR 에 여러 이슈를 섞지 않는다 — 스쿼시되면 `main` 에서 나눌 수 없다.
 * 기본 분기를 따라잡을 때는 `git pull --rebase` 를 쓴다. `git merge` 로 따라잡지 않는다.
-* 리베이스로 이력이 바뀐 작업 분기는 `--force-with-lease` 로 밀어 넣는다. 기본 분기에는 어떤 경우에도 force push 하지 않는다. 그냥 `--force` 는 훅이 막는다.
+* 리베이스로 이력이 바뀐 작업 분기는 `--force-with-lease` 로 밀어 넣는다. 기본 분기에는 어떤 경우에도 force push 하지 않는다. 그냥 `--force` 는 Claude Code 훅이 막는다.
 * 병합된 작업 분기는 지운다.
 
 ## 실행은 스크립트로만
@@ -121,7 +122,39 @@
 | 평가 방법과 모델 선정 결과 | `docs/eval/README.md` |
 | AI 에이전트 작업 체계 | `docs/agentic-workflow.md` |
 | 협업 규칙 (작업 흐름 · 커밋 · 라벨 · 서식) | `README.md` 「협업 규칙」 |
-| 경로별 규칙 | `.claude/rules/` |
-| 스킬 | `.claude/skills/` — `design` · `implement` · `eval` |
-| 감사 워크플로우 | `.claude/workflows/audit.js` |
-| 훅 | `.claude/settings.json` · `.claude/hooks/` |
+| 경로별 규칙 | `.claude/rules/` — 아래 「코드를 쓰기 전에」 |
+| 스킬 | `.agents/skills/` — `design` · `implement` · `eval`. `.claude/skills/` 는 같은 폴더를 가리키는 링크다 |
+| git 훅 (모든 에이전트 · 사람) | `.githooks/` |
+| Claude Code 훅 | `.claude/settings.json` · `.claude/hooks/` |
+| 감사 워크플로우 (Claude Code 전용) | `.claude/workflows/audit.js` |
+
+## 에이전트마다 되는 것
+
+이 저장소는 Claude Code 와 Codex 가 함께 쓴다. 지침 · 스킬 · git 훅은 같고, 나머지는 Claude Code 에만 있다.
+
+| 장치 | Claude Code | Codex |
+|---|---|---|
+| 지침 `AGENTS.md` | 읽는다 (`CLAUDE.md` 가 가져온다) | 읽는다 |
+| 스킬 `.agents/skills/` | 읽는다 (`.claude/skills/` 링크로) | 읽는다 |
+| 경로별 규칙 `.claude/rules/` | 그 경로의 파일을 열면 자동으로 읽는다 | 자동으로 읽지 않는다 — 아래 표를 보고 **직접 읽는다** |
+| git 훅 `.githooks/` | 걸린다 | 걸린다 |
+| Claude Code 훅 (포맷 · git 차단) | 걸린다 | 걸리지 않는다 — git 훅이 대신 막는다 |
+| 감사 워크플로우 | 쓴다 | 쓰지 않는다 |
+
+**git 훅을 켠다.** 저장소를 받으면 한 번 실행한다.
+
+```bash
+git config core.hooksPath .githooks
+```
+
+`pre-commit` 은 `main` 직접 커밋과 포맷 안 된 파일의 커밋을 막고, `pre-push` 는 `main` 으로의 직접 푸시를 막는다. **`--no-verify` 는 git 훅 자체를 건너뛴다.** Claude Code 에서는 Claude Code 훅이 그것을 막지만, 다른 에이전트에서는 막지 못한다 — 쓰지 않는다.
+
+## 코드를 쓰기 전에
+
+먼저 `implement` 스킬을 부른다. 그다음 작업 경로의 규칙 파일을 읽는다. Claude Code 는 자동으로 읽지만, **새 파일을 처음 만들 때는 자동으로 안 읽힐 수 있으니** 어느 에이전트든 직접 읽고 시작한다.
+
+| 작업 경로 | 규칙 파일 |
+|---|---|
+| `backend/app/query/**` | `.claude/rules/query-domain.md` |
+| `backend/tests/**` | `.claude/rules/backend-test.md` |
+| `frontend/src/**` | `.claude/rules/frontend.md` |

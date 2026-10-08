@@ -36,7 +36,22 @@ flowchart TB
 
 **지침을 `AGENTS.md` 에 두는 이유.** Claude Code 뿐 아니라 다른 코딩 에이전트도 같은 파일을 읽는다. `CLAUDE.md` 를 가져오기로 남긴 것은 `AGENTS.md` 를 직접 읽지 못하는 Claude Code(v2.1.277 미만 등)에서도 같은 지침이 들어가게 하려는 것이다. 새 버전에서도 두 번 읽히지 않는다.
 
-**규칙을 경로별로 나눈 이유.** 한 파일에 모든 규칙을 두면 화면을 고칠 때도 서버 규칙이 컨텍스트를 차지한다. `paths:` 로 범위를 걸어 필요한 규칙만 들어가게 했다.
+**규칙을 경로별로 나눈 이유.** 한 파일에 모든 규칙을 두면 화면을 고칠 때도 서버 규칙이 컨텍스트를 차지한다. `paths:` 로 범위를 걸어 필요한 규칙만 들어가게 했다. 이 자동 읽기는 Claude Code 에만 있어서, `AGENTS.md` 의 「코드를 쓰기 전에」 표가 다른 에이전트에게 읽을 규칙 파일을 알려 준다.
+
+### 여러 에이전트가 함께 쓴다
+
+이 저장소는 Claude Code 와 Codex 가 함께 쓴다. **지침 · 스킬 · git 훅은 한 벌이고 두 에이전트가 같은 것을 읽는다.**
+
+| 장치 | Claude Code | Codex | 한 벌로 두는 방법 |
+|---|---|---|---|
+| 지침 | 읽는다 | 읽는다 | `AGENTS.md` 원본, `CLAUDE.md` 는 `@AGENTS.md` |
+| 스킬 | 읽는다 | 읽는다 | `.agents/skills/` 원본, `.claude/skills/<이름>` 은 심볼릭 링크 |
+| 경로별 규칙 | 자동 | 직접 읽는다 | `AGENTS.md` 「코드를 쓰기 전에」 표 |
+| git 훅 | 걸린다 | 걸린다 | `.githooks/` (`core.hooksPath`) |
+| Claude Code 훅 | 걸린다 | — | git 훅이 같은 것을 막는다 (`--no-verify` 는 빼고) |
+| 감사 워크플로우 | 쓴다 | — | Claude Code 전용 |
+
+**두 벌을 두지 않는 이유.** 같은 스킬을 `.claude/skills/` 와 `.agents/skills/` 에 따로 두면 한쪽만 고쳐지는 날이 온다. 그러면 에이전트마다 다른 순서로 일하게 된다. 두 도구 모두 심볼릭 링크를 따라가므로 원본 하나로 충분하다.
 
 ## ② 스킬 — 일하는 순서
 
@@ -56,14 +71,15 @@ flowchart TB
 
 | 장치 | 무엇을 막나 | 자리 |
 |---|---|---|
-| 포맷 훅 | 에이전트가 고친 파일을 바로 포맷한다. 포맷 차이로 검사가 실패하는 왕복이 없다 | `.claude/hooks/format.sh` (PostToolUse) |
-| git 훅 | `main` 직접 커밋 · 푸시, `--no-verify`, `--force` 를 실행 전에 막는다 | `.claude/hooks/guard-git.sh` (PreToolUse) |
+| 포맷 훅 | 에이전트가 고친 파일을 바로 포맷한다. 포맷 차이로 검사가 실패하는 왕복이 없다 | `.claude/hooks/format.sh` (Claude Code, PostToolUse) |
+| git 차단 훅 | `main` 직접 커밋 · 푸시, `--no-verify`, `--force` 를 실행 전에 막는다 | `.claude/hooks/guard-git.sh` (Claude Code, PreToolUse) |
+| git 훅 | `main` 직접 커밋 · 푸시와 포맷 안 된 파일의 커밋을 막는다. 어느 에이전트든 사람이든 걸린다 | `.githooks/pre-commit` · `pre-push` |
 | 계층 경계 | `rules.py` 가 LangGraph 를 import 하거나 그래프가 어댑터를 import 하면 실패 | `import-linter` |
 | 규칙 커버리지 | 설계서의 규칙 ID 가 테스트에 없거나, 테스트가 없는 ID 를 적으면 실패 | `tests/test_rule_coverage.py` |
 | 타입 | `mypy --strict` · TypeScript `strict` | `scripts/check.sh` |
 | CI | 위 전부를 같은 스크립트로 다시 돌린다. 통과한 커밋만 이미지가 된다 | `.github/workflows/ci.yml` |
 
-**우회 금지도 장치로.** `AGENTS.md` 가 `skip` · `type: ignore` · 린트 끄기를 금지하고, git 훅이 `--no-verify` 를 막는다.
+**우회 금지도 장치로.** `AGENTS.md` 가 `skip` · `type: ignore` · 린트 끄기를 금지하고, Claude Code 훅이 `--no-verify` 를 막는다. `--no-verify` 는 git 훅 자체를 건너뛰므로 git 훅으로는 막을 수 없다 — 다른 에이전트에게는 지침으로만 금지되고, 원격 룰셋이 마지막 방어선이다.
 
 ## ④ 워크플로우 — 여러 에이전트가 교차 검증
 
