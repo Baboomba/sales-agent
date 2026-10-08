@@ -18,7 +18,7 @@ describe("QuerySteps", () => {
     ];
     render(<QuerySteps events={events} running />);
     expect(screen.getByText("조회(SELECT) 문만 실행할 수 있습니다.")).toBeInTheDocument();
-    expect(screen.getAllByText(/시도 2/)).not.toHaveLength(0);
+    expect(screen.getByText("시도 2 · SQL 을 만들었습니다")).toBeInTheDocument();
   });
 
   it("실패 사유를 알린다 (FR-005)", () => {
