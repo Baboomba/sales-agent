@@ -119,6 +119,8 @@
 | 아키텍처 · 기술 선택 근거 | `docs/architecture.md` |
 | 코드 아키텍처 (계층 · 의존 방향 · 실패를 나누는 법) | `docs/convention/code-architecture.md` |
 | 코드 컨벤션 (작성 규칙 · 도구) | `docs/convention/code-style.md` |
+| 테스트 규칙 (판정 기준 · 계층마다 볼 것 · 규칙 ID) | `docs/convention/testing.md` |
+| 리팩토링 규칙 (검사 항목 여섯 · 가르기) | `docs/convention/refactoring.md` |
 | 질의 도메인 설계 (규칙 ID · 테스트 사항) | `docs/design/query.md` |
 | 데이터 설계 | `docs/design/data.md` |
 | 평가 방법과 모델 선정 결과 | `docs/eval/README.md` |
@@ -160,5 +162,5 @@ git config core.hooksPath .githooks
 | 작업 경로 | 규칙 파일 | 정본 |
 |---|---|---|
 | `backend/app/**` | `.claude/rules/backend-app.md` | `code-architecture.md` 1 ~ 5절 · `code-style.md` 1 · 2절 |
-| `backend/tests/**` | `.claude/rules/backend-test.md` | 테스트 규칙 (#38) |
+| `backend/tests/**` | `.claude/rules/backend-test.md` | `testing.md` |
 | `frontend/src/**` | `.claude/rules/frontend.md` | `code-architecture.md` 6절 · `code-style.md` 1 · 3절 |
