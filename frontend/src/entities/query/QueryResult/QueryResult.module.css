@@ -9,9 +9,11 @@
   font-size: 14px;
 }
 
+/* 머리글은 스크롤해도 맨 위에 남고, 그 아래로 지나가는 막대 · 행 번호를 덮는다. */
 .table th {
   position: sticky;
   top: 0;
+  z-index: 1;
   height: 44px;
   padding: 0 24px;
   font-size: 13px;
@@ -55,18 +57,37 @@ tbody tr:first-child .rankMark {
   background: var(--point);
 }
 
-.table .number {
+/* 숫자 열은 머리글 · 값 모두 오른쪽 (SCR-R011). 숫자는 폭이 같은 글꼴 숫자로 자릿수를 맞춘다.
+   숫자 열은 내용만큼만 차지하고(폭 1% 와 줄바꿈 없음), 남는 폭은 글 열이 갖는다 — 막대가 숫자
+   바로 옆에 붙고, 열 폭이 가장 긴 값에 맞춰지므로 막대는 줄마다 같은 자리에서 시작한다 (SCR-R012). */
+.table [data-align="end"] {
+  width: 1%;
   text-align: right;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
+/* 막대 칸 — 표 폭의 절반을 차지하고 막대가 칸을 채운다. 바로 뒤 숫자 칸과는 12 만큼만 띄운다 (SCR-R012). */
+.table .barCell {
+  width: 50%;
+  padding-right: 12px;
+}
+
+.table .barCell + td {
+  padding-left: 0;
+}
+
+/* 마지막 열은 오른쪽 여백을 넉넉히 — 숫자가 카드 가장자리에 붙지 않게. */
+.table th:last-child,
+.table td:last-child {
+  padding-right: 32px;
+}
+
 .bar {
-  position: relative;
-  display: inline-block;
-  width: 120px;
+  display: block;
+  width: 100%;
+  min-width: 48px;
   height: 6px;
-  margin-right: 12px;
-  vertical-align: middle;
   overflow: hidden;
   border-radius: 3px;
   background: var(--point-soft);
@@ -93,8 +114,8 @@ tbody tr:first-child .rankMark {
     height: 48px;
   }
 
-  .bar {
-    width: 48px;
-    margin-right: 8px;
+  .table th:last-child,
+  .table td:last-child {
+    padding-right: 16px;
   }
 }
