@@ -10,7 +10,7 @@ import re
 
 import sqlglot
 from sqlglot import exp
-from sqlglot.errors import ParseError
+from sqlglot.errors import SqlglotError
 
 from app.query.model import ValidatedSql
 
@@ -114,7 +114,8 @@ def _single_statement(sql: str) -> exp.Expr:
     """QRY-R002 한 문장만 허용한다."""
     try:
         statements = [s for s in sqlglot.parse(sql, read="sqlite") if s is not None]
-    except ParseError as error:
+    except SqlglotError as error:
+        # ParseError 만 잡으면 TokenError(닫히지 않은 따옴표 등)가 그래프 밖으로 샌다.
         raise SqlRejected(f"SQL 구문 오류입니다: {_first_line(str(error))}") from error
     if len(statements) != 1:
         raise SqlRejected("SQL 은 한 문장이어야 합니다. 세미콜론으로 여러 문장을 잇지 마세요.")

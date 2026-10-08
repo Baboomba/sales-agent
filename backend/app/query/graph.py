@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 from typing import Any
@@ -34,6 +35,9 @@ from app.query.rules import (
 )
 
 UNAVAILABLE_REASON = "모델 서버에 연결할 수 없습니다. Ollama 가 떠 있는지 확인하세요."
+UNEXPECTED_REASON = "처리 중 예상하지 못한 오류가 났습니다. 다시 시도해 주세요."
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -56,9 +60,14 @@ class SqlAgent:
     async def stream(self, question: str) -> AsyncIterator[Event]:
         """QRY-R012 단계가 끝날 때마다 이벤트를 하나씩 낸다. 마지막은 done 이나 failed 다."""
         initial: QueryState = {"question": question, "attempt": 0, "outcome": "running"}
-        async for chunk in self._graph.astream(initial, stream_mode="updates"):
-            for node, update in chunk.items():
-                yield _to_event(node, update)
+        try:
+            async for chunk in self._graph.astream(initial, stream_mode="updates"):
+                for node, update in chunk.items():
+                    yield _to_event(node, update)
+        except Exception:
+            # 안전망. 예상한 실패는 노드가 상태로 돌려준다. 여기 오는 것은 버그이므로 남긴다.
+            logger.exception("질의 처리 중 예상하지 못한 오류")
+            yield Failed(reason=UNEXPECTED_REASON)
 
     # --- 그래프 -----------------------------------------------------------
 
