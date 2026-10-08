@@ -115,6 +115,7 @@
 |---|---|
 | 전체 검사 (CI 와 같다) | `scripts/check.sh` |
 | 서버 테스트 | `scripts/test.sh` |
+| 화면 테스트 | `scripts/test-frontend.sh` |
 | 변이 테스트 (테스트가 틀린 구현을 잡는지) | `scripts/mutate.sh` |
 | 다시 검사의 범위 (기준점 남기기 · 바뀐 것 보기) | `scripts/review-scope.sh mark` · `diff` |
 | 평가 세트 실행 | `scripts/eval.sh [모델 ...]` |

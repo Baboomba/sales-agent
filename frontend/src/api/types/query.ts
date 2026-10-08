@@ -1,7 +1,8 @@
-// 서버 이벤트와 응답의 모양. 이름은 docs/design/query.md 2.4 와 같다.
+// 서버 이벤트와 응답의 모양. 이름은 docs/design/query.md 2.2 · 2.4 와 같다.
+
+import type { Stage } from "@/common/values";
 
 export type Cell = string | number | null;
-export type Stage = "generate" | "validate" | "execute";
 
 export type QueryEvent =
   | { type: "generated"; attempt: number; sql: string }

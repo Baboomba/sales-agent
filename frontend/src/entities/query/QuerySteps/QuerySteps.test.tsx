@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react";
 
-import type { QueryEvent } from "../api/types";
-import { StepList } from "./StepList";
+import type { QueryEvent } from "@/api/types/query";
 
-describe("StepList", () => {
+import { QuerySteps } from "./QuerySteps";
+
+describe("QuerySteps", () => {
   it("재생성 사유를 시도 번호와 함께 보여 준다 (FR-002 · FR-004)", () => {
     const events: QueryEvent[] = [
       { type: "generated", attempt: 1, sql: "DELETE FROM orders" },
@@ -15,14 +16,14 @@ describe("StepList", () => {
       },
       { type: "generated", attempt: 2, sql: "SELECT 1" },
     ];
-    render(<StepList events={events} running />);
+    render(<QuerySteps events={events} running />);
     expect(screen.getByText("조회(SELECT) 문만 실행할 수 있습니다.")).toBeInTheDocument();
     expect(screen.getAllByText(/시도 2/)).not.toHaveLength(0);
   });
 
   it("실패 사유를 알린다 (FR-005)", () => {
     render(
-      <StepList
+      <QuerySteps
         events={[{ type: "failed", reason: "모델 서버에 연결할 수 없습니다." }]}
         running={false}
       />,

@@ -1,0 +1,1 @@
+export { QuerySql } from "./QuerySql";

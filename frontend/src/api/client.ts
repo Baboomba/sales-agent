@@ -1,45 +1,29 @@
-import { parseSse } from "./sse";
-import type { QueryEvent, SchemaTable } from "./types";
+// 서버를 부르는 공통 처리. fetch 는 api/ 밖에서 쓰지 않는다 (코드 아키텍처 6.3).
 
-export async function getSchema(): Promise<SchemaTable[]> {
-  const response = await fetch("/api/schema");
-  const body = (await response.json()) as { tables: SchemaTable[] };
-  return body.tables;
-}
+/** GET 으로 JSON 을 받는다. 바깥에서 들어온 JSON 이라 여기서만 타입을 단언한다. */
+export const getJson = async <T>(path: string): Promise<T> => {
+  const response = await fetch(path);
+  return (await response.json()) as T;
+};
 
-export async function getExamples(): Promise<string[]> {
-  const response = await fetch("/api/examples");
-  const body = (await response.json()) as { questions: string[] };
-  return body.questions;
-}
-
-/** 질문을 보내고 단계 이벤트를 받는 대로 넘긴다. POST 라 EventSource 대신 스트림을 직접 읽는다. */
-export async function streamQuery(
-  question: string,
-  onEvent: (event: QueryEvent) => void,
-  signal: AbortSignal,
-): Promise<void> {
-  const response = await fetch("/api/queries", {
+/** POST 로 JSON 을 보낸다. 본문을 스트림으로 읽어야 해 응답을 그대로 돌려준다. */
+export const postJson = (path: string, body: unknown, signal: AbortSignal): Promise<Response> =>
+  fetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify(body),
     signal,
   });
-  if (!response.ok || !response.body) {
-    const detail = await response.text();
-    onEvent({
-      type: "failed",
-      reason: `요청을 처리할 수 없습니다 (${response.status}). ${detail}`,
-    });
-    return;
-  }
-  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
-  let buffer = "";
+
+/** 응답 본문을 글 조각으로 받는 대로 넘긴다. */
+export const readText = async (
+  body: NonNullable<Response["body"]>,
+  onText: (text: string) => void,
+): Promise<void> => {
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader();
   for (;;) {
     const { value, done } = await reader.read();
-    if (done) break;
-    const parsed = parseSse(buffer + value);
-    buffer = parsed.rest;
-    parsed.events.forEach(onEvent);
+    if (done) return;
+    onText(value);
   }
-}
+};
