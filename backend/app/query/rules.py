@@ -88,6 +88,21 @@ def validate_sql(sql: str, *, allowed_tables: frozenset[str], row_limit: int) ->
     return _cap_limit(statement, row_limit)
 
 
+_MISSING_ALIAS = re.compile(r"no such column: (\w+)\.\w+")
+
+
+def explain_execution_error(message: str) -> str:
+    """QRY-R015 작은 모델이 고칠 곳을 찾도록 실행 오류에 안내를 덧붙인다."""
+    match = _MISSING_ALIAS.search(message)
+    if not match:
+        return message
+    alias = match.group(1)
+    return (
+        f"{message} — 별칭 '{alias}' 의 표가 FROM 이나 JOIN 에 없다. "
+        f"'{alias}' 를 쓰려면 그 표를 JOIN 하라."
+    )
+
+
 def sanitize_value(value: object) -> object:
     """QRY-R014 JSON 으로 보낼 수 없는 바이트 값만 바꾼다. 나머지는 손대지 않는다 (NFR-002)."""
     if isinstance(value, bytes | bytearray | memoryview):
