@@ -74,6 +74,20 @@ const TEST_FLOW = [
   selector: `CallExpression[callee.name=/^(it|test)$/] > :function > BlockStatement > ${statement}`,
   message: "테스트의 흐름에 if · 반복을 넣지 않는다 (테스트 규칙 5절).",
 }));
+// 스타일은 테스트하지 않는다 — 브라우저에서 잰다 (테스트 규칙 7.2).
+const NO_STYLE =
+  "스타일(클래스 · style · 정렬 속성)은 테스트하지 않는다. 브라우저에서 잰다 (테스트 규칙 7.2).";
+const TEST_STYLE = [
+  {
+    selector: "MemberExpression[property.name=/^(className|classList|style)$/]",
+    message: NO_STYLE,
+  },
+  { selector: "CallExpression[callee.name='getComputedStyle']", message: NO_STYLE },
+  {
+    selector: "CallExpression[callee.property.name=/^(toHaveStyle|toHaveClass)$/]",
+    message: NO_STYLE,
+  },
+];
 const syntax = (...groups) => ({ "no-restricted-syntax": ["error", ...groups.flat()] });
 
 const TESTS = ["src/**/*.test.{ts,tsx}", "src/**/__test__/**"];
@@ -150,7 +164,7 @@ export default tseslint.config(
     files: TESTS,
     rules: {
       "no-restricted-imports": ["error", { patterns: [UP] }],
-      ...syntax(BASE, TEST_FLOW),
+      ...syntax(BASE, TEST_FLOW, TEST_STYLE),
       "no-restricted-properties": [
         "error",
         ...["mock", "fn", "spyOn", "doMock"].map((property) => ({

@@ -32,11 +32,16 @@ const isNumberColumn = (rows: Cell[][], index: number): boolean => {
  * 막대를 그릴 열과 그 최댓값 (SCR-R012). 숫자 열이 하나뿐이고 값이 모두 0 이상일 때만 그린다.
  * 막대는 그림일 뿐 숫자를 바꾸지 않는다.
  */
+/** 열마다 숫자 열인지. 숫자 열은 머리글 · 값 · 빈 값 모두 오른쪽에 둔다 (SCR-R011). */
+const numberColumns = (rows: Cell[][]): boolean[] =>
+  Array.from({ length: rows[0]?.length ?? 0 }, (_, c) => isNumberColumn(rows, c));
+
 export const barColumn = (rows: Cell[][]): Bar | null => {
-  const indexes = Array.from({ length: rows[0]?.length ?? 0 }, (_, c) => c);
-  const numberColumns = indexes.filter((c) => isNumberColumn(rows, c));
-  const [index] = numberColumns;
-  if (numberColumns.length !== 1 || index === undefined) return null;
+  const numbers = numberColumns(rows);
+  const indexes = Array.from({ length: numbers.length }, (_, c) => c);
+  const numberColumnIndexes = indexes.filter((c) => numbers[c]);
+  const [index] = numberColumnIndexes;
+  if (numberColumnIndexes.length !== 1 || index === undefined) return null;
   const values = filledCells(rows, index).filter((cell) => typeof cell === "number");
   if (values.some((value) => value < 0)) return null;
   return { index, max: Math.max(...values) };
@@ -52,15 +57,16 @@ interface Props {
 export const QueryResult = ({ columns, rows, truncated }: Props) => {
   if (rows.length === 0) return <p className={styles.empty}>조건에 맞는 데이터가 없습니다.</p>;
   const bar = barColumn(rows);
+  const numbers = numberColumns(rows);
   return (
     <div className={styles.wrap}>
       <table className={styles.table}>
         <thead>
-          <HeadRow columns={columns} />
+          <HeadRow columns={columns} numbers={numbers} barIndex={bar?.index ?? null} />
         </thead>
         <tbody>
           {rows.map((row, r) => (
-            <BodyRow key={r} rank={r + 1} row={row} bar={bar} />
+            <BodyRow key={r} rank={r + 1} row={row} numbers={numbers} bar={bar} />
           ))}
         </tbody>
       </table>
@@ -71,18 +77,26 @@ export const QueryResult = ({ columns, rows, truncated }: Props) => {
   );
 };
 
+/** 칸의 정렬 표시. 머리글과 값이 같은 표시를 받아 같은 쪽에 선다 (SCR-R011). */
+const align = (number: boolean | undefined) => (number ? "end" : "start");
+
 interface HeadRowProps {
   columns: string[];
+  numbers: boolean[];
+  /** 막대 열의 자리. 그 머리글은 막대 칸 · 숫자 칸 둘에 걸친다. */
+  barIndex: number | null;
 }
 
 /** 머리 줄 — 행 번호 자리 + 열 이름. 열 이름은 겹칠 수 있어(예: count 둘) 자리로 key 를 삼는다. */
-const HeadRow = ({ columns }: HeadRowProps) => (
+const HeadRow = ({ columns, numbers, barIndex }: HeadRowProps) => (
   <tr>
     <th className={styles.rank}>
       <span className="sr-only">행</span>
     </th>
     {columns.map((column, c) => (
-      <th key={c}>{column}</th>
+      <th key={c} data-align={align(numbers[c])} colSpan={barIndex === c ? 2 : undefined}>
+        {column}
+      </th>
     ))}
   </tr>
 );
@@ -90,37 +104,49 @@ const HeadRow = ({ columns }: HeadRowProps) => (
 interface BodyRowProps {
   rank: number;
   row: Cell[];
+  numbers: boolean[];
   bar: Bar | null;
 }
 
 /** 행 하나 — 행 번호 + 값 칸. */
-const BodyRow = ({ rank, row, bar }: BodyRowProps) => (
+const BodyRow = ({ rank, row, numbers, bar }: BodyRowProps) => (
   <tr>
     <td className={styles.rank}>
       <span className={styles.rankMark}>{rank}</span>
     </td>
     {row.map((cell, c) => (
-      <ValueCell key={c} cell={cell} max={bar?.index === c ? bar.max : null} />
+      <ValueCell
+        key={c}
+        cell={cell}
+        number={numbers[c] ?? false}
+        max={bar?.index === c ? bar.max : null}
+      />
     ))}
   </tr>
 );
 
 interface ValueCellProps {
   cell: Cell;
+  /** 숫자 열인지. 빈 값도 열을 따라 오른쪽에 둔다. */
+  number: boolean;
   /** 막대 열이면 그 열의 최댓값, 아니면 null. */
   max: number | null;
 }
 
-/** 값 칸. 숫자는 오른쪽에 두고, 막대 열이면 앞에 막대를 그린다. */
-const ValueCell = ({ cell, max }: ValueCellProps) => {
-  if (typeof cell !== "number") return <td>{formatCell(cell)}</td>;
-  return (
-    <td className={styles.number}>
-      {max !== null && <BarMark ratio={max === 0 ? 0 : cell / max} />}
-      {formatCell(cell)}
-    </td>
-  );
-};
+/**
+ * 값 칸. 숫자 열은 오른쪽에 둔다. 막대 열이면 막대 칸과 숫자 칸 둘로 그린다 — 숫자 칸은 가장 긴 값만큼만
+ * 차지해 막대 바로 옆에 붙고, 막대는 제 칸을 채우므로 줄마다 같은 자리에서 시작한다 (SCR-R012).
+ */
+const ValueCell = ({ cell, number, max }: ValueCellProps) => (
+  <>
+    {max !== null && (
+      <td className={styles.barCell}>
+        {typeof cell === "number" && <BarMark ratio={max === 0 ? 0 : cell / max} />}
+      </td>
+    )}
+    <td data-align={align(number)}>{formatCell(cell)}</td>
+  </>
+);
 
 interface BarMarkProps {
   ratio: number;

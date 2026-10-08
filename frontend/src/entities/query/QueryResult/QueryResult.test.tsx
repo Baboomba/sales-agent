@@ -71,7 +71,7 @@ describe("QueryResult", () => {
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 
-  it("행이 있으면 열 이름과 값, DB 순서의 행 번호를 보이고 숫자는 오른쪽에 둔다 — 위의 짝 (SCR-R011)", () => {
+  it("행이 있으면 열 이름과 값, DB 순서의 행 번호를 보인다 — 위의 짝 (SCR-R011)", () => {
     render(
       <QueryResult
         columns={["zzz_a", "zzz_b"]}
@@ -84,8 +84,7 @@ describe("QueryResult", () => {
     );
     expect(screen.getByRole("columnheader", { name: "zzz_b" })).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "zzz 값" })).toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "1,234" }).className).toMatch(/number/);
-    expect(screen.getByRole("cell", { name: "zzz 값" }).className).not.toMatch(/number/);
+    expect(screen.getByRole("cell", { name: "1,234" })).toBeInTheDocument();
     expect(
       screen
         .getAllByRole("row")

@@ -47,6 +47,7 @@
 | 접근성 | 코드 컨벤션 3 | ESLint `jsx-a11y` |
 | 목을 쓰지 않는다 (`vi.mock` · `vi.fn` · `vi.spyOn`) | 테스트 규칙 7.1 | ESLint `no-restricted-properties` (테스트) |
 | 테스트의 흐름에 if · 반복을 넣지 않는다 | 테스트 규칙 5 | ESLint `no-restricted-syntax` (테스트) |
+| 스타일(정렬 · 배치 · 크기 · 색)은 테스트하지 않는다 | 테스트 규칙 7.2 | ESLint `no-restricted-syntax` (테스트의 `className` · `style` · `toHaveStyle` · `toHaveClass` · `getComputedStyle`) |
 | 화면 규칙마다 테스트 | 테스트 규칙 8 | `tests/test_rule_coverage.py` |
 | 타입 엄격 | 코드 컨벤션 3 | TypeScript `strict` · `noUncheckedIndexedAccess` |
 
