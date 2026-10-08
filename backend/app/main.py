@@ -46,4 +46,6 @@ def create_app(
 
 def app_from_env() -> FastAPI:
     """uvicorn --factory 진입점. import 할 때 앱을 만들지 않아 테스트가 실제 DB 에 묶이지 않는다."""
-    return create_app(Settings.from_env())
+    settings = Settings.from_env()
+    settings.check()  # QRY-R016 지킬 수 없는 설정이면 뜨지 않는다
+    return create_app(settings)

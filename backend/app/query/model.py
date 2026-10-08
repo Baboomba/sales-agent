@@ -30,18 +30,11 @@ class QueryResult:
     rows: tuple[Row, ...]
 
 
-@dataclass(frozen=True)
-class ValidatedSql:
-    sql: str
-    capped: bool  # 상한 LIMIT 을 붙이거나 줄였는지. 잘림 여부를 판단하는 데 쓴다 (QRY-R005)
-
-
 class QueryState(TypedDict, total=False):
     """그래프가 단계 사이에 넘기는 상태 (docs/design/query.md 2.2)."""
 
     question: str
     sql: str
-    capped: bool
     attempt: int
     feedback: str | None
     stage: Stage

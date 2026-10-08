@@ -12,8 +12,6 @@ import sqlglot
 from sqlglot import exp
 from sqlglot.errors import SqlglotError
 
-from app.query.model import ValidatedSql
-
 QUESTION_MAX_LENGTH = 300
 
 # 문장 안 어디에 있든 거부하는 구문. 조회문 안에 숨긴 쓰기(CTE 등)까지 잡는다.
@@ -80,7 +78,7 @@ def parse_generation(raw: str) -> str:
     return sql.strip()
 
 
-def validate_sql(sql: str, *, allowed_tables: frozenset[str], row_limit: int) -> ValidatedSql:
+def validate_sql(sql: str, *, allowed_tables: frozenset[str], row_limit: int) -> str:
     """QRY-R002 ~ QRY-R005 실행해도 되는 SQL 인지 판정하고, LIMIT 을 보정해 돌려준다."""
     statement = _single_statement(sql)
     _ensure_read_only(statement)
@@ -152,15 +150,17 @@ def _ensure_allowed_tables(statement: exp.Expr, allowed: frozenset[str]) -> None
             raise SqlRejected(f"허용되지 않은 표입니다: {table.name}. 쓸 수 있는 표: {listed}")
 
 
-def _cap_limit(statement: exp.Expr, row_limit: int) -> ValidatedSql:
-    """QRY-R005 바깥 LIMIT 이 없으면 붙이고, 상한보다 크면 줄인다."""
+def _cap_limit(statement: exp.Expr, row_limit: int) -> str:
+    """QRY-R005 바깥 LIMIT 이 없거나 상한보다 크면 상한+1 로 둔다.
+
+    한 행 더 가져와야, 결과가 정확히 상한 개수일 때 잘린 것인지 아닌지 안다.
+    """
     assert isinstance(statement, exp.Query)
     limit = statement.args.get("limit")
     current = _literal_int(limit.expression) if isinstance(limit, exp.Limit) else None
     if current is not None and current <= row_limit:
-        return ValidatedSql(sql=statement.sql(dialect="sqlite"), capped=False)
-    capped = statement.limit(row_limit, copy=True)
-    return ValidatedSql(sql=capped.sql(dialect="sqlite"), capped=True)
+        return statement.sql(dialect="sqlite")
+    return statement.limit(row_limit + 1, copy=True).sql(dialect="sqlite")
 
 
 def _literal_int(node: exp.Expr | None) -> int | None:

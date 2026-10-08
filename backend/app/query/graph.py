@@ -34,7 +34,6 @@ from app.query.rules import (
     validate_sql,
 )
 
-UNAVAILABLE_REASON = "모델 서버에 연결할 수 없습니다. Ollama 가 떠 있는지 확인하세요."
 UNEXPECTED_REASON = "처리 중 예상하지 못한 오류가 났습니다. 다시 시도해 주세요."
 
 logger = logging.getLogger(__name__)
@@ -90,9 +89,8 @@ class SqlAgent:
         try:
             raw = await self._generator.generate(prompt)
         except GeneratorUnavailable as error:
-            # QRY-R013 다시 해도 안 되는 실패. 재생성 횟수를 깎지 않고 바로 끝낸다.
-            reason = f"{UNAVAILABLE_REASON} ({error})"
-            return {"attempt": attempt, "outcome": "failed", "reason": reason}
+            # QRY-R013 다시 해도 안 되는 실패. 재생성 횟수를 깎지 않고, 어댑터가 적은 사유로 끝낸다.
+            return {"attempt": attempt, "outcome": "failed", "reason": str(error)}
         try:
             sql = parse_generation(raw)
         except GenerationError as error:
@@ -106,7 +104,7 @@ class SqlAgent:
             )
         except SqlRejected as error:
             return self._reject(state["attempt"], "validate", error.reason)
-        return {"stage": "validate", "sql": validated.sql, "capped": validated.capped}
+        return {"stage": "validate", "sql": validated}
 
     async def _execute(self, state: QueryState) -> QueryState:
         try:
@@ -115,8 +113,10 @@ class SqlAgent:
             reason = f"실행 오류: {explain_execution_error(str(error))}"
             return self._reject(state["attempt"], "execute", reason)
         # QRY-R011 실행 뒤에는 모델을 부르지 않는다. 값은 DB 가 낸 그대로다.
-        rows = tuple(tuple(sanitize_value(v) for v in row) for row in result.rows)
-        truncated = state.get("capped", False) and len(rows) >= self._settings.row_limit
+        # QRY-R005 상한+1 행까지 가져왔다. 상한을 넘었으면 잘라 내고 잘렸다고 알린다.
+        limit = self._settings.row_limit
+        truncated = len(result.rows) > limit
+        rows = tuple(tuple(sanitize_value(v) for v in row) for row in result.rows[:limit])
         return {
             "stage": "execute",
             "columns": result.columns,
