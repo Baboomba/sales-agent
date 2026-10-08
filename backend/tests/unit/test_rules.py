@@ -112,7 +112,6 @@ def test_qry_r004_table_names_are_case_insensitive() -> None:
     assert "FROM" in validate("SELECT * FROM Stores")
 
 
-
 @pytest.mark.parametrize(
     "sql",
     [
@@ -143,7 +142,10 @@ def test_qry_r004_cte_cannot_mask_qualified_internal_table(sql: str) -> None:
 
 def test_qry_r004_qualified_allowed_table_is_accepted() -> None:
     """QRY-R004 스키마를 붙여도 실제 허용 표면 받는다."""
-    assert validate("SELECT store_id FROM main.stores") == "SELECT store_id FROM main.stores LIMIT 200"
+    assert (
+        validate("SELECT store_id FROM main.stores") == "SELECT store_id FROM main.stores LIMIT 200"
+    )
+
 
 # --- QRY-R005 LIMIT 보정 --------------------------------------------------
 
