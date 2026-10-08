@@ -1,0 +1,82 @@
+[project]
+name = "sales-agent"
+version = "0.1.0"
+description = "매출 데이터에 자연어로 묻는 Text-to-SQL Agent"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.142",
+    "uvicorn>=0.54",
+    "langgraph>=1.2",
+    "langchain-ollama>=1.1",
+    "sqlglot>=30.21",
+    "pydantic>=2.13",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1",
+    "pytest-asyncio>=1.2",
+    "httpx>=0.28",
+    "ruff>=0.16",
+    "mypy>=2.4",
+    "import-linter>=2.15",
+    "pyyaml>=6.0",
+    "types-pyyaml>=6.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # 한글 문서에서 전각 문자를 쓴다
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+packages = ["app"]
+
+[[tool.mypy.overrides]]
+module = ["sqlglot.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["integration: 실제 SQLite 파일로 확인한다"]
+
+# 의존 방향을 사람이 아니라 검사가 지킨다 (docs/architecture.md 2절).
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "질의 도메인 계층 — 안쪽으로만 의존한다"
+type = "layers"
+layers = [
+    "app.query.api",
+    "app.query.graph",
+    "app.query.prompt | app.query.rules",
+    "app.query.ports",
+    "app.query.model",
+]
+containers = []
+exhaustive = false
+
+[[tool.importlinter.contracts]]
+name = "순수 계층은 프레임워크와 어댑터를 모른다"
+type = "forbidden"
+source_modules = ["app.query.model", "app.query.rules", "app.query.prompt", "app.query.ports"]
+forbidden_modules = ["fastapi", "langgraph", "langchain_ollama", "langchain_core", "app.query.adapters", "app.main"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "어댑터는 조립 루트만 안다"
+type = "forbidden"
+source_modules = ["app.query.api", "app.query.graph"]
+forbidden_modules = ["app.query.adapters", "langchain_ollama"]
