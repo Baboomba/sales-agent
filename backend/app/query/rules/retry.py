@@ -28,6 +28,8 @@ def after_generation_failure(
     """QRY-R013 · QRY-R010 생성 실패 뒤에 무엇을 할지 정한다.
 
     모델 서버 장애면 다시 생성하지 않고 장애 종류를 알 수 있는 사유로 끝낸다 (QRY-R013).
+    사유는 특정 모델 서버를 적지 않는다 — 서버를 바꿔도 규칙은 그대로다 (#44).
+    서버마다 다른 안내(모델 받기 · 띄우는 법)는 README 에 있다.
     출력 형식 실패는 장애가 아니다 — 생성기가 지은 세부를 사유로 다시 생성한다 (QRY-R010).
     """
     match failure.kind:
@@ -36,15 +38,15 @@ def after_generation_failure(
         case GenerationFailureKind.TIMEOUT:
             return Failed(
                 f"모델 응답이 {limits.generation_timeout_seconds:g}초를 넘었습니다. "
-                "더 작은 모델을 쓰거나, Mac 이면 Docker 대신 호스트의 Ollama 를 쓰세요."
+                "더 작은 모델이나 더 빠른 실행 환경(GPU 등)을 쓰세요."
             )
         case GenerationFailureKind.ERROR_RESPONSE:
             return Failed(
                 f"모델 서버가 오류를 돌려줬습니다: {failure.detail}. "
-                "모델을 받았는지 확인하세요 (ollama pull)."
+                "모델 서버에 그 모델이 있는지 확인하세요."
             )
         case GenerationFailureKind.CONNECTION:
             return Failed(
-                "모델 서버에 연결할 수 없습니다. Ollama 가 떠 있는지 확인하세요. "
+                "모델 서버에 연결할 수 없습니다. 모델 서버가 떠 있는지 확인하세요. "
                 f"({failure.detail})"
             )
