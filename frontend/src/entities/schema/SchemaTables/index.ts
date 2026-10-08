@@ -1,0 +1,1 @@
+export { SchemaTables } from "./SchemaTables";

@@ -1,4 +1,4 @@
-import { formatCell } from "./format";
+import { formatCell } from "./QueryResult";
 
 describe("formatCell", () => {
   it("정수에 천 단위 구분만 넣는다", () => {

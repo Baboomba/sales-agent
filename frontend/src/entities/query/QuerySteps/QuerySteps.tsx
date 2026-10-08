@@ -1,5 +1,7 @@
-import type { QueryEvent, Stage } from "../api/types";
-import styles from "./StepList.module.css";
+import type { QueryEvent } from "@/api/types/query";
+import type { Stage } from "@/common/values";
+
+import styles from "./QuerySteps.module.css";
 
 const STAGE_LABEL: Record<Stage, string> = {
   generate: "생성",
@@ -13,20 +15,23 @@ interface Props {
 }
 
 /** 생성 → 검증 → 실행 과정을 이벤트 순서대로 보여 준다 (FR-002 · FR-004 · FR-005). */
-export function StepList({ events, running }: Props) {
-  return (
-    <ol className={styles.list}>
-      {events.map((event, index) => (
-        <li key={index} className={styles[event.type]}>
-          <Step event={event} />
-        </li>
-      ))}
-      {running && <li className={styles.pending}>진행 중…</li>}
-    </ol>
-  );
+export const QuerySteps = ({ events, running }: Props) => (
+  <ol className={styles.list}>
+    {events.map((event, index) => (
+      <li key={index} className={styles[event.type]}>
+        <Step event={event} />
+      </li>
+    ))}
+    {running && <li className={styles.pending}>진행 중…</li>}
+  </ol>
+);
+
+interface StepProps {
+  event: QueryEvent;
 }
 
-function Step({ event }: { event: QueryEvent }) {
+/** 단계 하나의 글. 판별 유니온을 끝까지 다룬다. */
+const Step = ({ event }: StepProps) => {
   switch (event.type) {
     case "generated":
       return <span>시도 {event.attempt} · SQL 을 만들었습니다</span>;
@@ -48,4 +53,4 @@ function Step({ event }: { event: QueryEvent }) {
         </span>
       );
   }
-}
+};

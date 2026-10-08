@@ -69,10 +69,10 @@
 
 계층 · 묶음 · 파일을 어떻게 나누는지는 [코드 아키텍처](code-architecture.md) 6절이 갖는다.
 
-* **함수는 `function` 선언으로 쓴다.** 컴포넌트도 같다 (`export function App()`).
+* **함수는 화살표 함수로만 쓴다.** 컴포넌트 · 훅 · 순수 함수 모두 같다 (`export const App = () => …`). `function` 선언 · 식은 쓰지 않는다 — 린트(`no-restricted-syntax`)가 막는다.
 * **이름 있는 내보내기만 쓴다.** 묶음은 `index.ts` 로 내보낸다. `export default` 는 도구 설정 파일(`vite.config.ts` · `eslint.config.js`)과 CSS Modules 타입 선언에만 쓴다.
 * **`as` 단언은 바깥에서 들어온 JSON 의 경계(`api/`)에서만 쓴다.** 그 밖에서는 타입을 좁혀 쓴다.
-* **props 타입은 컴포넌트 옆에 `interface Props`** 로 둔다. 서버 타입은 `api/types/` 에서만 가져온다.
+* **props 타입은 컴포넌트 옆에 `interface Props`** 로 둔다. 파일 안 조각은 `interface <조각>Props`. 서버 타입은 `api/types/` 에서만 가져온다.
 * **판별 유니온은 `switch` 로 끝까지 다룬다.** 새 이벤트가 생기면 타입 검사가 빠진 자리를 알려 준다.
 * **제 폴더 밖은 `@/` 로 가리킨다.** `../` 로 올라가지 않는다.
 * **스타일은 CSS Modules.** 묶음마다 `<묶음>.module.css`, 색 · 간격은 `index.css` 의 변수(`--accent` 등)만 쓴다. 인라인 스타일을 쓰지 않는다.

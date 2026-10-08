@@ -94,7 +94,7 @@ git worktree add --detach "$TMPDIR/test-review" HEAD
 ```
 
 1. 임시 작업 트리에서 대상 코드 한 곳만 틀리게 바꾼다 — 갈래 뒤집기, 조건 빼기, 값 바꾸기.
-2. 그 테스트만 돌린다 — 서버는 `scripts/test.sh <테스트 파일>`, 화면은 `npx vitest run <테스트 파일>`.
+2. 그 테스트만 돌린다 — 서버는 `scripts/test.sh <테스트 파일>`, 화면은 `scripts/test-frontend.sh <테스트 파일>`.
 3. 끝나면 임시 작업 트리를 지운다 — `git worktree remove --force "$TMPDIR/test-review"`.
 
 커밋하지 않은 변경이 범위에 있으면, 임시 작업 트리에 그 파일들을 복사한 뒤 망가뜨린다.

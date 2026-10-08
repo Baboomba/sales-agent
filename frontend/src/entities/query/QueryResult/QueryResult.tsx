@@ -1,6 +1,16 @@
-import type { Cell } from "../api/types";
-import { formatCell } from "../format";
-import styles from "./ResultTable.module.css";
+import type { Cell } from "@/api/types/query";
+
+import styles from "./QueryResult.module.css";
+
+// 천 단위 구분만 넣는다. 반올림하지 않는다 — 숫자는 DB 가 낸 그대로 보인다 (NFR-002).
+const number = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 20 });
+
+/** 칸 하나를 글로 옮긴다. 표시용 계산이라 엔티티 안에 둔다 (코드 아키텍처 6.2). */
+export const formatCell = (value: Cell): string => {
+  if (value === null) return "—";
+  if (typeof value === "number") return number.format(value);
+  return value;
+};
 
 interface Props {
   columns: string[];
@@ -9,7 +19,7 @@ interface Props {
 }
 
 /** 실행 결과. 숫자를 가공하지 않는다 (NFR-002). */
-export function ResultTable({ columns, rows, truncated }: Props) {
+export const QueryResult = ({ columns, rows, truncated }: Props) => {
   if (rows.length === 0) return <p className={styles.empty}>조건에 맞는 데이터가 없습니다.</p>;
   return (
     <div className={styles.wrap}>
@@ -38,4 +48,4 @@ export function ResultTable({ columns, rows, truncated }: Props) {
       )}
     </div>
   );
-}
+};
