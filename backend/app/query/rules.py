@@ -131,13 +131,23 @@ def _ensure_read_only(statement: exp.Expr) -> None:
 
 
 def _ensure_allowed_tables(statement: exp.Expr, allowed: frozenset[str]) -> None:
-    """QRY-R004 허용된 표와 CTE 이름만 참조한다."""
+    """QRY-R004 허용된 표만 참조한다 (NFR-008).
+
+    이름만 보면 두 가지가 빠져나간다. sqlglot 은 `FROM f()` 의 표 이름을 빈 문자열로 주고,
+    SQLite 는 `main.X` 를 CTE 가 아니라 실제 객체로 푼다. 그래서 셋을 따로 본다.
+    """
+    real = {name.lower() for name in allowed}
     cte_names = {cte.alias_or_name.lower() for cte in statement.find_all(exp.CTE)}
-    known = {name.lower() for name in allowed} | cte_names
+    listed = ", ".join(sorted(allowed))
     for table in statement.find_all(exp.Table):
         name = table.name.lower()
-        if name and name not in known:
-            listed = ", ".join(sorted(allowed))
+        if not name or not isinstance(table.this, exp.Identifier):
+            raise SqlRejected(f"FROM 자리에 함수를 쓸 수 없습니다. 쓸 수 있는 표: {listed}")
+        if table.args.get("db") or table.args.get("catalog"):
+            # 한정자를 붙인 이름은 CTE 가 아니다. 실제 허용 표만 받는다.
+            if table.db.lower() != "main" or table.catalog or name not in real:
+                raise SqlRejected(f"허용되지 않은 표입니다: {table.sql()}. 쓸 수 있는 표: {listed}")
+        elif name not in real | cte_names:
             raise SqlRejected(f"허용되지 않은 표입니다: {table.name}. 쓸 수 있는 표: {listed}")
 
 
