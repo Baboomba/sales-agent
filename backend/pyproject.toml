@@ -33,8 +33,28 @@ line-length = 100
 target-version = "py313"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# 규칙과 막는 장치의 표는 docs/convention/enforcement.md 에 있다.
+#   PGH  — 경고를 끄는 주석(# noqa · # type: ignore)을 쓰지 않는다 (code-style 1.1)
+#   T20  — print 는 스크립트에서만 (code-style 2)
+#   BLE  — 넓은 except 는 안전망 한 곳만 (code-style 2)
+#   TID  — 목(mock) 라이브러리를 쓰지 않는다 (testing 7.1)
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "PGH", "T20", "BLE", "TID"]
 ignore = ["RUF001", "RUF002", "RUF003"]  # 한글 문서에서 전각 문자를 쓴다
+
+[tool.ruff.lint.isort]
+# 모든 모듈은 from __future__ import annotations 로 시작한다 (code-style 2).
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"unittest.mock".msg = "목 라이브러리를 쓰지 않는다. 가짜는 tests/<도메인>/fake.py 에 둔다 (testing 7.1)."
+"pytest_mock".msg = "목 라이브러리를 쓰지 않는다. 가짜는 tests/<도메인>/fake.py 에 둔다 (testing 7.1)."
+
+[tool.ruff.lint.per-file-ignores]
+# 스크립트 · 평가는 사람에게 진행을 알린다.
+"scripts/*" = ["T20"]
+"evaluation/*" = ["T20"]
+# 예상하지 못한 오류를 실패 단계로 바꾸는 안전망은 이 한 곳뿐이다 (QRY-R012).
+"app/query/usecase/query_flow.py" = ["BLE001"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -89,13 +109,14 @@ exhaustive = false
 name = "모델은 아무것도 모른다"
 type = "forbidden"
 source_modules = ["app.query.model"]
-forbidden_modules = ["app.query.rules", "app.query.dependency", "app.query.usecase", "app.query.api", "app.config", "app.main", "fastapi", "pydantic", "langgraph", "langchain_ollama", "langchain_core", "ollama", "httpx", "sqlglot"]
+forbidden_modules = ["time", "random", "datetime", "os", "pathlib", "sqlite3", "app.query.rules", "app.query.dependency", "app.query.usecase", "app.query.api", "app.config", "app.main", "fastapi", "pydantic", "langgraph", "langchain_ollama", "langchain_core", "ollama", "httpx", "sqlglot"]
 
 [[tool.importlinter.contracts]]
 name = "규칙은 모델과 규칙만 안다"
 type = "forbidden"
 source_modules = ["app.query.rules"]
-forbidden_modules = ["app.query.dependency", "app.query.usecase", "app.query.api", "app.config", "app.main", "fastapi", "pydantic", "langgraph", "langchain_ollama", "langchain_core", "ollama", "httpx", "sqlglot"]
+# 규칙은 파일 · 시각 · 난수 · DB 를 쓰지 않는다 — 같은 입력에 늘 같은 판단 (code-architecture 2.2).
+forbidden_modules = ["time", "random", "datetime", "os", "pathlib", "sqlite3", "app.query.dependency", "app.query.usecase", "app.query.api", "app.config", "app.main", "fastapi", "pydantic", "langgraph", "langchain_ollama", "langchain_core", "ollama", "httpx", "sqlglot"]
 
 [[tool.importlinter.contracts]]
 name = "구현은 조립 루트만 안다"

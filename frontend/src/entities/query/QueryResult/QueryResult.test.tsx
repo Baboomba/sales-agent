@@ -131,13 +131,16 @@ describe("QueryResult", () => {
     );
     const bars = screen.getAllByTestId("bar");
 
-    expect(bars.map((bar) => (bar.firstChild as HTMLElement).style.width)).toEqual(["100%", "25%"]);
+    expect(bars.map((bar) => bar.querySelector("rect")?.getAttribute("width"))).toEqual([
+      "100%",
+      "25%",
+    ]);
     expect(screen.getByRole("cell", { name: "200" })).toBeInTheDocument();
   });
 
   it("값이 모두 0 이면 막대는 비어 있다 (SCR-R012)", () => {
     render(<QueryResult columns={["zzz_a", "zzz_b"]} rows={[["zzz", 0]]} truncated={false} />);
-    expect((screen.getByTestId("bar").firstChild as HTMLElement).style.width).toBe("0%");
+    expect(screen.getByTestId("bar").querySelector("rect")?.getAttribute("width")).toBe("0%");
   });
 
   it("숫자 열이 둘이면 막대를 그리지 않는다 — 위의 짝 (SCR-R012)", () => {

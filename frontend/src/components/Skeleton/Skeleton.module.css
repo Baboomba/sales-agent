@@ -21,14 +21,27 @@
   display: block;
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, var(--surface) 25%, #e6ebf3 50%, var(--surface) 75%);
+  background: linear-gradient(90deg, var(--surface) 25%, var(--skeleton) 50%, var(--surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.2s ease-in-out infinite;
 }
 
+/* 칸마다 폭을 조금씩 달리해 표처럼 보이게 한다. */
+.block:nth-child(3n + 1) {
+  width: 70%;
+}
+
+.block:nth-child(3n + 2) {
+  width: 53%;
+}
+
+.block:nth-child(3n) {
+  width: 36%;
+}
+
 .head .block {
   height: 10px;
-  background-color: #e6ebf3;
+  background-color: var(--skeleton);
 }
 
 @keyframes shimmer {

@@ -20,11 +20,11 @@ interface LineProps {
   head?: boolean;
 }
 
-/** 뼈대 한 줄. 칸마다 폭을 조금씩 달리해 표처럼 보이게 한다. */
+/** 뼈대 한 줄. 칸마다 폭이 조금씩 다르다(스타일 파일이 순서로 정한다). */
 const Line = ({ columns, head = false }: LineProps) => (
   <div className={head ? `${styles.line} ${styles.head}` : styles.line}>
     {Array.from({ length: columns }, (_, c) => (
-      <span key={c} className={styles.block} style={{ width: `${70 - ((c * 17) % 40)}%` }} />
+      <span key={c} className={styles.block} />
     ))}
   </div>
 );

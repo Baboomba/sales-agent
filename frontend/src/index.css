@@ -17,6 +17,15 @@
   --warn-soft: #fef3e2;
   --bad: #c43a3a;
   --bad-soft: #fdecec;
+  /* 포인트 위 글자 · 누른 단추 · 연한 강조 · 신호색 글자 · 뼈대 · 줄 강조 · 로고 끝색 */
+  --on-point: #fff;
+  --point-press: #162c75;
+  --point-hover-soft: #dde7fc;
+  --warn-text: #7c3d06;
+  --bad-text: #8a2222;
+  --skeleton: #e6ebf3;
+  --row-hover: #fafbfd;
+  --logo-end: #3b6fe0;
   --r-sm: 10px;
   --r-md: 16px;
   --r-lg: 20px;

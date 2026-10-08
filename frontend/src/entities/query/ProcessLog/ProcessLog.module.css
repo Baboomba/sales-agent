@@ -173,12 +173,12 @@
   padding: 10px 12px;
   font-size: 12.5px;
   line-height: 1.5;
-  color: #7c3d06;
+  color: var(--warn-text);
   background: var(--warn-soft);
   border-radius: 10px;
 }
 
 .bad .why {
-  color: #8a2222;
+  color: var(--bad-text);
   background: var(--bad-soft);
 }

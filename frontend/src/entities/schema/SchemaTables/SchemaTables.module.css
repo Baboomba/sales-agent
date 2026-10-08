@@ -40,7 +40,7 @@
 }
 
 .table[open] .icon {
-  background: #fff;
+  background: var(--card);
 }
 
 .table summary > span:last-child {

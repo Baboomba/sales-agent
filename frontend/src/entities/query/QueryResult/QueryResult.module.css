@@ -30,7 +30,7 @@
 }
 
 .table tr:hover td {
-  background: #fafbfd;
+  background: var(--row-hover);
 }
 
 .table .rank {
@@ -51,7 +51,7 @@
 }
 
 tbody tr:first-child .rankMark {
-  color: #fff;
+  color: var(--on-point);
   background: var(--point);
 }
 
@@ -72,11 +72,8 @@ tbody tr:first-child .rankMark {
   background: var(--point-soft);
 }
 
-.bar i {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 3px;
-  background: var(--point);
+.bar rect {
+  fill: var(--point);
 }
 
 .empty,
