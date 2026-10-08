@@ -1,4 +1,4 @@
-"""규칙 테스트가 함께 쓰는 단언."""
+"""질의 도메인 테스트가 함께 쓰는 단언."""
 
 from __future__ import annotations
 

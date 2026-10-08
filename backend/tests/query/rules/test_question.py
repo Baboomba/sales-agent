@@ -6,7 +6,7 @@ import pytest
 
 from app.query.model.question import Question
 from app.query.rules.question import check_question
-from tests.query.rules.support import assert_reason
+from tests.query.support import assert_reason
 
 
 @pytest.mark.parametrize("text", ["", "   ", "\n\t"])

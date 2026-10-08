@@ -8,9 +8,8 @@ from enum import Enum
 
 @dataclass(frozen=True)
 class GeneratedSql:
-    """생성기가 낸 SQL. 첫 시도가 1 이다."""
+    """생성기가 낸 SQL. 몇 번째 시도인지는 질의 흐름이 센다 (설계서 2.1)."""
 
-    attempt: int
     text: str
 
 

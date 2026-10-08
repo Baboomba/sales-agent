@@ -18,7 +18,7 @@ from app.query.model.question import Column, Question, Table
 from app.query.model.sql import GeneratedSql
 from app.query.model.terms import TERMS, ExampleQuery, Terms
 from tests.query.fake import ScriptedModel
-from tests.query.rules.support import assert_reason
+from tests.query.support import assert_reason
 
 TABLES = (
     Table(
@@ -45,11 +45,11 @@ TERMS_FOR_TEST: Terms = replace(
 
 
 async def generate(
-    replies: list[str | Exception], *, attempt: int = 2, last_reason: str | None = None
+    replies: list[str | Exception], *, last_reason: str | None = None
 ) -> tuple[GeneratedSql | GenerationFailure, ScriptedModel]:
     model = ScriptedModel(replies)
     result = await OllamaSqlGenerator(model).generate(
-        Question("zzz 질문"), TABLES, TERMS_FOR_TEST, attempt=attempt, last_reason=last_reason
+        Question("zzz 질문"), TABLES, TERMS_FOR_TEST, last_reason=last_reason
     )
     return result, model
 
@@ -69,13 +69,8 @@ async def generate(
 )
 async def test_qry_r010_sql_is_taken_from_json_output(reply: str) -> None:
     """QRY-R010 출력 `{"sql": "..."}` 에서 SQL 을 꺼낸다. 코드 펜스는 걷고, 앞뒤 공백은 뗀다."""
-    result, _ = await generate([reply], attempt=2)
-    assert result == GeneratedSql(attempt=2, text="SELECT zzz FROM t")
-
-
-async def test_generated_sql_carries_the_attempt_it_was_given() -> None:
-    result, _ = await generate(['{"sql": "SELECT 1"}'], attempt=3)
-    assert result == GeneratedSql(attempt=3, text="SELECT 1")
+    result, _ = await generate([reply])
+    assert result == GeneratedSql("SELECT zzz FROM t")
 
 
 @pytest.mark.parametrize(

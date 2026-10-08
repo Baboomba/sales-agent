@@ -50,7 +50,6 @@ class OllamaSqlGenerator:
         tables: tuple[Table, ...],
         terms: Terms,
         *,
-        attempt: int,
         last_reason: str | None,
     ) -> GeneratedSql | GenerationFailure:
         prompt = _prompt(question, tables, terms, last_reason)
@@ -63,10 +62,10 @@ class OllamaSqlGenerator:
             return GenerationFailure(GenerationFailureKind.ERROR_RESPONSE, error.error)
         except (ConnectionError, httpx.HTTPError) as error:
             return GenerationFailure(GenerationFailureKind.CONNECTION, str(error))
-        return _parse(raw, attempt)
+        return _parse(raw)
 
 
-def _parse(raw: str, attempt: int) -> GeneratedSql | GenerationFailure:
+def _parse(raw: str) -> GeneratedSql | GenerationFailure:
     """QRY-R010 출력 `{"sql": "..."}` 에서 SQL 을 꺼낸다. 작은 모델이 붙이는 코드 펜스는 걷는다."""
     text = _CODE_FENCE.sub("", raw.strip())
     try:
@@ -78,7 +77,7 @@ def _parse(raw: str, attempt: int) -> GeneratedSql | GenerationFailure:
     sql = payload.get("sql")
     if not isinstance(sql, str) or not sql.strip():
         return _format_failure('출력에 "sql" 값이 없습니다.')
-    return GeneratedSql(attempt=attempt, text=sql.strip())
+    return GeneratedSql(sql.strip())
 
 
 def _format_failure(problem: str) -> GenerationFailure:

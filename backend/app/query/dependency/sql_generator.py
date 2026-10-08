@@ -17,7 +17,6 @@ class SqlGenerator(Protocol):
         tables: tuple[Table, ...],
         terms: Terms,
         *,
-        attempt: int,
         last_reason: str | None,
     ) -> GeneratedSql | GenerationFailure:
         """표 목록은 규칙이 업무 설명을 붙인 것이다(QRY-R017). 실패는 실패 모델로 돌려준다."""

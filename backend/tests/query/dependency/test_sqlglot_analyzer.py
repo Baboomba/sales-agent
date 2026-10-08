@@ -9,7 +9,7 @@ import pytest
 
 from app.query.dependency.impl.sqlglot_analyzer import SqlglotAnalyzer
 from app.query.model.sql import Qualifier, SqlShape, TableRef
-from tests.query.rules.support import assert_reason
+from tests.query.support import assert_reason
 
 ANALYZER = SqlglotAnalyzer()
 

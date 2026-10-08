@@ -6,7 +6,7 @@ import pytest
 
 from app.query.model.failure import QueryLimits
 from app.query.rules.limits import check_limits
-from tests.query.rules.support import assert_reason
+from tests.query.support import assert_reason
 
 
 def limits(generation: float, query: float, attempts: int = 3) -> QueryLimits:

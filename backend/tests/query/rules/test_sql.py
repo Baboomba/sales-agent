@@ -9,7 +9,7 @@ import pytest
 
 from app.query.model.sql import Accepted, Qualifier, Refused, SqlShape, TableRef, Verdict
 from app.query.rules.sql import judge
-from tests.query.rules.support import assert_reason
+from tests.query.support import assert_reason
 
 ALLOWED = frozenset({"stores", "products", "orders", "order_items"})
 

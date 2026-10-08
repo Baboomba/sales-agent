@@ -11,7 +11,7 @@ from app.query.rules.retry import (
     after_rejection,
     after_unexpected_error,
 )
-from tests.query.rules.support import assert_reason
+from tests.query.support import assert_reason
 
 LIMITS = QueryLimits(
     max_attempts=3, row_limit=200, generation_timeout_seconds=13, query_timeout_seconds=5
