@@ -4,7 +4,7 @@
 #
 #   scripts/mutate.sh
 #
-# 살아남아도 되는 변이는 고정 문구와 assert_never 갈래뿐이다. 그 밖이 살아남으면 테스트가 빠진 것이다
+# 살아남아도 되는 변이는 문구 · assert_never 갈래 · 동치 변이뿐이다. 그 밖이 살아남으면 테스트가 빠진 것이다
 # (docs/convention/testing.md 10절).
 set -euo pipefail
 
@@ -29,4 +29,4 @@ for mutant in $survived; do
   uv run mutmut show "$mutant" 2>/dev/null | grep -E '^[-+][^-+]' || true
 done
 echo
-echo "살아남은 변이 $(echo "$survived" | wc -l | tr -d ' ')개. 고정 문구 · assert_never 갈래가 아닌 것이 있으면 테스트를 더한다."
+echo "살아남은 변이 $(echo "$survived" | wc -l | tr -d ' ')개. 문구 · assert_never 갈래 · 동치 변이가 아닌 것이 있으면 테스트를 더한다."
