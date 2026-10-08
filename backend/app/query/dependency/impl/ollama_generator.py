@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from collections.abc import Awaitable, Callable
@@ -41,8 +42,9 @@ _INSTRUCTIONS = """너는 SQLite SQL 작성기다. 질문에 답하는 SELECT �
 
 
 class OllamaSqlGenerator:
-    def __init__(self, complete: Complete) -> None:
+    def __init__(self, complete: Complete, *, timeout_seconds: float) -> None:
         self._complete = complete
+        self._timeout = timeout_seconds
 
     async def generate(
         self,
@@ -54,10 +56,22 @@ class OllamaSqlGenerator:
     ) -> GeneratedSql | GenerationFailure:
         prompt = _prompt(question, tables, terms, last_reason)
         try:
-            raw = await self._complete(prompt)
-        # QRY-R013 모델 서버 장애를 종류별 실패로 옮긴다. 시간 초과는 HTTPError 의 하위라 먼저 본다.
-        except httpx.TimeoutException as error:
-            return GenerationFailure(GenerationFailureKind.TIMEOUT, str(error))
+            # QRY-R013 생성 제한 시간은 생성 한 번 전체에 건다. 바깥의 제한 시간은 응답 조각 하나를
+            # 기다리는 시간에만 걸려, 조각이 계속 오면 생성이 끝없이 길어진다 (#48).
+            async with asyncio.timeout(self._timeout):
+                raw = await self._complete(prompt)
+        # QRY-R013 모델 서버 장애를 종류별 실패로 옮긴다. 연결하다 넘은 시간은 연결 실패다 (#48).
+        # 연결 클라이언트는 연결에만 제한 시간을 건다(ollama_client). 그래서 httpx 의 시간 초과는
+        # ConnectTimeout 뿐이고, 응답 시간 초과는 위 asyncio.timeout 의 TimeoutError 뿐이다.
+        # ConnectTimeout 은 HTTPError 의 하위라 먼저 본다.
+        except httpx.ConnectTimeout as error:
+            # httpx 는 연결 시간 초과의 글을 비워 두기도 한다. 사유가 빈 괄호로 끝나지 않게 채운다.
+            detail = str(error) or "연결 시간이 넘었다"
+            return GenerationFailure(GenerationFailureKind.CONNECTION, detail)
+        except TimeoutError:
+            return GenerationFailure(
+                GenerationFailureKind.TIMEOUT, f"생성이 {self._timeout:g}초를 넘었다"
+            )
         except ResponseError as error:
             return GenerationFailure(GenerationFailureKind.ERROR_RESPONSE, error.error)
         except (ConnectionError, httpx.HTTPError) as error:

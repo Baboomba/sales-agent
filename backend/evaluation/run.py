@@ -73,8 +73,9 @@ async def evaluate(model: str, settings: Settings) -> list[Outcome]:
         ollama_complete(
             base_url=settings.ollama_base_url,
             model=model,
-            timeout_seconds=settings.generation_timeout_seconds,
-        )
+            generation_timeout_seconds=settings.generation_timeout_seconds,
+        ),
+        timeout_seconds=settings.generation_timeout_seconds,
     )
     flow = QueryFlow(generator, SqlglotAnalyzer(), database, TERMS, query_limits(settings))
     gold_conn = sqlite3.connect(f"file:{settings.db_path}?mode=ro", uri=True)
