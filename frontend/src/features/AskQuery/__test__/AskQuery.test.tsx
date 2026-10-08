@@ -121,8 +121,46 @@ describe("AskQuery", () => {
 
     const stop = await screen.findByRole("button", { name: "중지" });
     expect(screen.getByText("진행 중…")).toBeInTheDocument();
-    expect(resultCard()).toHaveTextContent("답을 만들고 있습니다…");
     fireEvent.click(stop);
+  });
+
+  it("늦은 응답에는 결과 카드에 흐르는 막대 · 지금 단계 · 표 모양 뼈대가 보이고, 끝나면 사라진다 (SCR-R002)", async () => {
+    install({
+      "/api/examples": [EXAMPLES],
+      "/api/queries": [{ sseThenHang: sse(["generated", { attempt: 1, sql: "zzz sql" }]) }],
+    });
+    renderAsk();
+
+    fireEvent.click(await screen.findByRole("button", { name: "zzz 예시" }));
+
+    const status = await within(resultCard()).findByRole("status");
+    expect(status).toHaveTextContent("SQL 을 검증하는 중");
+    expect(resultCard()).toHaveAttribute("aria-busy", "true");
+    expect(within(resultCard()).getByTestId("skeleton")).toBeInTheDocument();
+    expect(within(resultCard()).getByTestId("progress-bar")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "중지" }));
+    await screen.findByRole("button", { name: "질문하기" });
+    expect(resultCard()).toHaveAttribute("aria-busy", "false");
+    expect(within(resultCard()).queryByTestId("skeleton")).not.toBeInTheDocument();
+    expect(within(resultCard()).queryByTestId("progress-bar")).not.toBeInTheDocument();
+  });
+
+  it("빠른 응답에는 뼈대가 한 번도 보이지 않는다 — 위의 짝 (SCR-R002)", async () => {
+    install({ "/api/examples": [EXAMPLES], "/api/queries": [{ sse: SUCCESS }] });
+    renderAsk();
+    let seen = false;
+    const observer = new MutationObserver(() => {
+      if (screen.queryByTestId("skeleton")) seen = true;
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    fireEvent.click(await screen.findByRole("button", { name: "zzz 예시" }));
+    await within(resultCard()).findByRole("cell", { name: "zzz 서울" });
+    observer.disconnect();
+
+    expect(seen).toBe(false);
+    expect(resultCard()).toHaveAttribute("aria-busy", "false");
   });
 
   it("늦은 응답을 중지하면 묻기 전 모습으로 돌아간다 (SCR-R002)", async () => {

@@ -54,3 +54,17 @@ export const attemptSummary = (events: QueryEvent[]) => {
     rows: doneEvent(events)?.rows.length ?? null,
   };
 };
+
+/** 기다리는 동안 결과 카드에 적을 지금 단계. 마지막으로 받은 단계의 다음 일이다 (SCR-R002). */
+export const progressText = (events: QueryEvent[]): string => {
+  switch (events.at(-1)?.type) {
+    case "generated":
+      return "SQL 을 검증하는 중";
+    case "validated":
+      return "SQL 을 실행하는 중";
+    case "rejected":
+      return "사유를 붙여 SQL 을 다시 만드는 중";
+    default:
+      return "SQL 을 만드는 중";
+  }
+};

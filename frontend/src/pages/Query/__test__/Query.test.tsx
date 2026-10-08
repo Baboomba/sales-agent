@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 const PANELS = [
-  ["complementary", "표와 열"],
+  ["complementary", "테이블과 컬럼"],
   ["region", "결과"],
   ["complementary", "처리 기록"],
 ] as const;
@@ -73,8 +73,11 @@ describe("Query", () => {
     fireEvent.click(screen.getByRole("tab", { name: "처리 기록" }));
     expect(hidden()).toEqual(["true", "true", "false"]);
 
-    fireEvent.click(screen.getByRole("tab", { name: "표와 열" }));
+    fireEvent.click(screen.getByRole("tab", { name: "테이블과 컬럼" }));
     expect(hidden()).toEqual(["false", "true", "true"]);
-    expect(screen.getByRole("tab", { name: "표와 열" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "테이블과 컬럼" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

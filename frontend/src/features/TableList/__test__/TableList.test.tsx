@@ -18,7 +18,7 @@ const SCHEMA: FakeReply = {
 };
 
 describe("TableList", () => {
-  it("표와 열을 불러와 보인다", async () => {
+  it("테이블과 컬럼을 불러와 보인다", async () => {
     install({ "/api/schema": [SCHEMA] });
     render(<TableList />);
 

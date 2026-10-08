@@ -95,7 +95,7 @@ interface StageCardProps {
 const StageCard = ({ number, stage, status, note }: StageCardProps) => (
   <li className={`${styles.card} ${styles[status] ?? ""}`} data-status={status}>
     <span className={styles.mark} aria-hidden="true">
-      {status === "done" ? <Check /> : number}
+      {status === "done" ? <Check /> : status === "run" ? <span className={styles.ring} /> : number}
     </span>
     <span className={styles.text}>
       <span className={styles.title}>{STAGE_LABEL[stage]}</span>
