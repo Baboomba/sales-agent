@@ -94,6 +94,43 @@ describe("AskQuery", () => {
     expect(within(resultCard()).getByRole("alert")).toHaveTextContent("zzz 사유");
   });
 
+  it("한꺼번에 온 단계를 처리 기록에 하나씩 드러내고, 결과 표는 완료가 드러난 뒤에 보인다 (SCR-R016)", async () => {
+    install({ "/api/examples": [EXAMPLES], "/api/queries": [{ sse: SUCCESS }] });
+    renderAsk();
+
+    fireEvent.click(await screen.findByRole("button", { name: "zzz 예시" }));
+
+    const log = await screen.findByRole("list", { name: "처리 기록" });
+    expect(
+      within(log)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual([expect.stringContaining("생성"), "진행 중…"]);
+    expect(within(resultCard()).queryByRole("cell", { name: "zzz 서울" })).not.toBeInTheDocument();
+    expect(
+      await within(resultCard()).findByRole("cell", { name: "zzz 서울" }, { timeout: 2000 }),
+    ).toBeInTheDocument();
+    expect(within(log).getAllByRole("listitem")).toHaveLength(3);
+  });
+
+  it("단계를 차례로 드러내는 동안 진행 중 노드가 끝에 남아 꺼졌다 켜지지 않는다 (SCR-R016)", async () => {
+    install({ "/api/examples": [EXAMPLES], "/api/queries": [{ sse: SUCCESS }] });
+    renderAsk();
+    const runningCounts: number[] = [];
+    const observer = new MutationObserver(() => {
+      runningCounts.push(screen.queryAllByText("진행 중…").length);
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+    fireEvent.click(await screen.findByRole("button", { name: "zzz 예시" }));
+    await within(resultCard()).findByRole("cell", { name: "zzz 서울" }, { timeout: 2000 });
+    observer.disconnect();
+
+    // 진행 중 노드는 처음 드러낼 때 생겨 완료가 드러날 때 한 번만 사라진다 — 사이에 꺼졌다 켜지지 않는다.
+    const changes = runningCounts.filter((count, i) => i === 0 || count !== runningCounts[i - 1]);
+    expect(changes).toEqual([0, 1, 0]);
+  });
+
   it("입력하고 질문하기를 누르면 그 질문을 보낸다 (FR-001)", async () => {
     const server = install({
       "/api/examples": [{ json: { questions: [] } }],
@@ -146,8 +183,11 @@ describe("AskQuery", () => {
     expect(within(resultCard()).queryByTestId("progress-bar")).not.toBeInTheDocument();
   });
 
-  it("빠른 응답에는 뼈대가 한 번도 보이지 않는다 — 위의 짝 (SCR-R002)", async () => {
-    install({ "/api/examples": [EXAMPLES], "/api/queries": [{ sse: SUCCESS }] });
+  it("단계 하나로 빠르게 끝나면 뼈대가 한 번도 보이지 않는다 — 위의 짝 (SCR-R002)", async () => {
+    install({
+      "/api/examples": [EXAMPLES],
+      "/api/queries": [{ sse: sse(["failed", { reason: "zzz 빠른 실패" }]) }],
+    });
     renderAsk();
     let seen = false;
     const observer = new MutationObserver(() => {
@@ -156,7 +196,7 @@ describe("AskQuery", () => {
     observer.observe(document.body, { childList: true, subtree: true });
 
     fireEvent.click(await screen.findByRole("button", { name: "zzz 예시" }));
-    await within(resultCard()).findByRole("cell", { name: "zzz 서울" });
+    await within(resultCard()).findByRole("alert");
     observer.disconnect();
 
     expect(seen).toBe(false);

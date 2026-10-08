@@ -68,6 +68,41 @@
   display: none;
 }
 
+/* 새 노드는 앞 노드에서 엣지가 자라난 뒤 나타난다 (SCR-R016). 엣지는 앞 노드의 ::before 라서,
+   새 노드가 붙어 앞 노드가 마지막이 아니게 되는 순간 생기며 자란다. 노드는 그만큼 늦게 나타난다. */
+.entry:not(:last-child)::before {
+  transform-origin: top;
+  animation: grow 0.2s ease-out both;
+}
+
+.entry {
+  animation: appear 0.25s ease-out 0.2s both;
+}
+
+.entry:first-child {
+  animation-delay: 0s;
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry,
+  .entry:not(:last-child)::before {
+    animation: none;
+  }
+}
+
 .icon {
   position: absolute;
   left: 0;

@@ -1,7 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 
 import { type FakeReply, fakeServer, sse } from "@/api/__test__/fakeServer";
-import { useAskQuery, useExamples } from "@/features/AskQuery/hooks";
+import type { QueryEvent } from "@/api/types/query";
+import { useAskQuery, useExamples, useRevealed } from "@/features/AskQuery/hooks";
 
 const install = (routes: Record<string, FakeReply[]>) => {
   const server = fakeServer(routes);
@@ -238,5 +239,66 @@ describe("useExamples", () => {
     await waitFor(() =>
       expect(result.current.state).toEqual({ status: "ok", value: ["zzz 둘째", "zzz 첫"] }),
     );
+  });
+});
+
+describe("useRevealed", () => {
+  const A: QueryEvent = { type: "generated", attempt: 1, sql: "zzz a" };
+  const B: QueryEvent = { type: "validated", sql: "zzz b" };
+  const C: QueryEvent = { type: "done", columns: ["zzz"], rows: [[1]], truncated: false };
+  const D: QueryEvent = { type: "failed", reason: "zzz d" };
+  const ONLY_A: QueryEvent[] = [A];
+  const ALL: QueryEvent[] = [A, B, C];
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("한꺼번에 온 단계를 첫 단계는 바로, 다음부터 350ms 간격으로 드러낸다 (SCR-R016)", () => {
+    const { result } = renderHook(() => useRevealed([A, B, C]));
+
+    expect(result.current).toEqual([A]);
+    act(() => vi.advanceTimersByTime(349));
+    expect(result.current).toEqual([A]);
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current).toEqual([A, B]);
+    act(() => vi.advanceTimersByTime(350));
+    expect(result.current).toEqual([A, B, C]);
+  });
+
+  it("앞 단계를 드러낸 지 350ms 가 지났으면 새 단계를 기다리지 않고 바로 드러낸다 (SCR-R016)", () => {
+    const { result, rerender } = renderHook(({ events }) => useRevealed(events), {
+      initialProps: { events: ONLY_A },
+    });
+    act(() => vi.advanceTimersByTime(1000));
+
+    rerender({ events: [A, B] });
+    act(() => vi.advanceTimersByTime(0));
+
+    expect(result.current).toEqual([A, B]);
+  });
+
+  it("첫 단계가 바뀌면(새 질문) 처음부터 다시 센다 — 앞 질문의 수를 쓰지 않는다 (SCR-R016)", () => {
+    const { result, rerender } = renderHook(({ events }) => useRevealed(events), {
+      initialProps: { events: ALL },
+    });
+    act(() => vi.advanceTimersByTime(350));
+    act(() => vi.advanceTimersByTime(350));
+    expect(result.current).toHaveLength(3);
+
+    rerender({ events: [D, B, C] });
+
+    expect(result.current).toEqual([D]);
+  });
+
+  it("움직임을 줄이도록 설정했으면 받은 대로 모두 드러낸다 — 위 테스트들의 짝 (SCR-R016)", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduce") }));
+    const { result } = renderHook(() => useRevealed([A, B, C]));
+
+    expect(result.current).toEqual([A, B, C]);
   });
 });

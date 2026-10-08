@@ -9,7 +9,7 @@ import { QuerySql } from "@/entities/query/QuerySql";
 import { StageCards } from "@/entities/query/StageCards";
 
 import styles from "./AskQuery.module.css";
-import { useAskQuery, useExamples } from "./hooks";
+import { useAskQuery, useExamples, useRevealed } from "./hooks";
 import {
   QUESTION_MAX_LENGTH,
   attemptSummary,
@@ -30,7 +30,12 @@ interface Props {
 
 /** 질문하고 단계 · SQL · 결과 · 처리 기록을 받아 본다 (FR-001 · FR-002 · FR-007). */
 export const AskQuery = ({ mobileTabs, mobileHidden }: Props) => {
-  const { question, setQuestion, events, running, pending, ask, stop } = useAskQuery();
+  const { question, setQuestion, events: received, running, pending, ask, stop } = useAskQuery();
+  // 세 칸은 드러낸 단계만 본다 — 처리 기록만 앞서거나 결과 표가 먼저 뜨지 않게 (SCR-R016).
+  const events = useRevealed(received);
+  // 늦은 응답이거나, 받은 단계를 아직 다 드러내지 않았으면 진행 중이다. 드러내는 사이에 진행 표시가
+  // 꺼졌다 켜지면 한 프레임씩 번쩍인다 (SCR-R002 · R016).
+  const waiting = pending || events.length < received.length;
   const summary = attemptSummary(events);
 
   const askExample = (example: string) => {
@@ -51,16 +56,16 @@ export const AskQuery = ({ mobileTabs, mobileHidden }: Props) => {
           onStop={stop}
         />
         <Examples question={question} onPick={askExample} />
-        <StageCards events={events} pending={pending} summary={summary} />
+        <StageCards events={events} pending={waiting} summary={summary} />
         {mobileTabs}
-        <ResultCard events={events} pending={pending} hidden={mobileHidden.result} />
+        <ResultCard events={events} pending={waiting} hidden={mobileHidden.result} />
       </div>
       <aside className={styles.log} aria-label="처리 기록" data-mobile-hidden={mobileHidden.log}>
         <div className={styles.logHead}>
           <h2>처리 기록</h2>
           <span>생성 → 검증 → 실행</span>
         </div>
-        <ProcessLog events={events} pending={pending} summary={summary} />
+        <ProcessLog events={events} pending={waiting} summary={summary} />
       </aside>
     </div>
   );

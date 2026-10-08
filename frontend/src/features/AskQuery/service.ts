@@ -5,6 +5,9 @@ import type { QueryEvent } from "@/api/types/query";
 /** 질문 길이 상한 (QRY-R001 · SCR-R005). 입력칸이 이보다 길게 받지 않는다. */
 export const QUESTION_MAX_LENGTH = 300;
 
+/** 한꺼번에 온 단계를 이 간격으로 하나씩 드러낸다 — 과정이 눈에 보이게 (SCR-R016). */
+export const REVEAL_STEP_MS = 350;
+
 /** 응답이 이보다 늦을 때만 진행 표시를 보인다. 빠른 응답에 진행 표시가 번쩍이지 않게 (SCR-R002). */
 export const PENDING_DELAY_MS = 300;
 
