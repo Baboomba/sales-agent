@@ -46,8 +46,9 @@ def create_app(
         ollama_complete(
             base_url=settings.ollama_base_url,
             model=settings.ollama_model,
-            timeout_seconds=settings.generation_timeout_seconds,
-        )
+            generation_timeout_seconds=settings.generation_timeout_seconds,
+        ),
+        timeout_seconds=settings.generation_timeout_seconds,
     )
     analyzer = analyzer or SqlglotAnalyzer()
     database = database or SqliteSalesDatabase(

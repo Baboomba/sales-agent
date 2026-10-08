@@ -65,7 +65,7 @@ source_paths = [
     "app/config.py",
 ]
 also_copy = ["app/"]
-pytest_add_cli_args_test_selection = ["tests/query/", "tests/integration/test_sqlite_sales_database.py", "tests/integration/test_main_wiring.py", "tests/test_main.py", "tests/test_config.py"]
+pytest_add_cli_args_test_selection = ["tests/query/", "tests/integration/test_sqlite_sales_database.py", "tests/integration/test_main_wiring.py", "tests/integration/test_ollama_client.py", "tests/test_main.py", "tests/test_config.py"]
 
 # 의존 방향을 사람이 아니라 검사가 지킨다 (docs/architecture.md 2절).
 [tool.importlinter]

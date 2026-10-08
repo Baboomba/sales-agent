@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import replace
 
 import httpx
@@ -48,7 +49,7 @@ async def generate(
     replies: list[str | Exception], *, last_reason: str | None = None
 ) -> tuple[GeneratedSql | GenerationFailure, ScriptedModel]:
     model = ScriptedModel(replies)
-    result = await OllamaSqlGenerator(model).generate(
+    result = await OllamaSqlGenerator(model, timeout_seconds=5).generate(
         Question("zzz 질문"), TABLES, TERMS_FOR_TEST, last_reason=last_reason
     )
     return result, model
@@ -102,24 +103,47 @@ async def test_qry_r010_bad_output_becomes_a_format_failure_with_a_detail(reply:
 @pytest.mark.parametrize(
     ("error", "kind"),
     [
-        (httpx.ReadTimeout("zzz read timed out"), GenerationFailureKind.TIMEOUT),
         (ResponseError("model 'zzz-model' not found"), GenerationFailureKind.ERROR_RESPONSE),
         (httpx.ConnectError("zzz connection refused"), GenerationFailureKind.CONNECTION),
+        (httpx.ConnectTimeout("zzz connect timed out"), GenerationFailureKind.CONNECTION),
         (ConnectionError("zzz connection reset"), GenerationFailureKind.CONNECTION),
     ],
-    ids=["timeout", "error-response", "httpx-connect", "connection"],
+    ids=["error-response", "httpx-connect", "connect-timeout", "connection"],
 )
 async def test_qry_r013_outage_becomes_its_kind_with_the_outside_detail(
     error: Exception, kind: GenerationFailureKind
 ) -> None:
-    """QRY-R013 연결 실패 · 오류 응답 · 시간 초과를 각각의 생성 실패로 옮긴다.
+    """QRY-R013 연결 실패 · 오류 응답을 각각의 생성 실패로 옮긴다. 시간 초과는 아래 테스트가 본다.
 
-    세부는 바깥이 준 말이다.
+    세부는 바깥이 준 말이다. 연결하다 시간이 넘은 것(`ConnectTimeout`)은 응답 시간 초과가 아니라
+    연결 실패다 — `ConnectTimeout` 은 `TimeoutException` 의 하위라 먼저 가려야 한다 (#48).
     """
     result, _ = await generate([error])
     assert isinstance(result, GenerationFailure)
     assert result.kind is kind
     assert "zzz" in result.detail
+
+
+async def test_qry_r013_generation_longer_than_the_timeout_is_cut_as_timeout() -> None:
+    """QRY-R013 생성 한 번 전체가 생성 제한 시간을 넘으면 끊고 시간 초과로 옮긴다 (#48).
+
+    응답 조각마다 걸리는 바깥의 제한 시간으로는 조각이 계속 오는 생성을 끊지 못한다. 끝나지
+    않는 생성을 0.1초로 끊어, 제한 시간 안에 돌아오는지도 본다.
+    """
+
+    async def endless(prompt: str) -> str:
+        await asyncio.Event().wait()
+        return "zzz"
+
+    result = await asyncio.wait_for(
+        OllamaSqlGenerator(endless, timeout_seconds=0.1).generate(
+            Question("zzz 질문"), TABLES, TERMS_FOR_TEST, last_reason=None
+        ),
+        timeout=5,
+    )
+    assert isinstance(result, GenerationFailure)
+    assert result.kind is GenerationFailureKind.TIMEOUT
+    assert_reason(result.detail)
 
 
 async def test_unexpected_error_is_not_turned_into_a_failure() -> None:
