@@ -17,5 +17,5 @@
 }
 
 .retry:hover {
-  background: #dde7fc;
+  background: var(--point-hover-soft);
 }

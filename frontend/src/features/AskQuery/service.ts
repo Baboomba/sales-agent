@@ -64,7 +64,10 @@ export const progressText = (events: QueryEvent[]): string => {
       return "SQL 을 실행하는 중";
     case "rejected":
       return "사유를 붙여 SQL 을 다시 만드는 중";
-    default:
+    // 아직 받은 단계가 없으면 첫 생성 중이다. 완료 · 실패 뒤에는 기다리지 않으므로 이 글을 보이지 않는다.
+    case undefined:
+    case "done":
+    case "failed":
       return "SQL 을 만드는 중";
   }
 };

@@ -7,11 +7,12 @@
 | | 서버 | 화면 |
 |---|---|---|
 | 포맷 | `ruff format` (줄 100자) | Prettier (줄 100자) |
-| 린트 | `ruff check` — `E` · `F` · `W` · `I` · `B` · `UP` · `SIM` · `RUF` | ESLint — `typescript-eslint` strict · `jsx-a11y` · `react-hooks` |
+| 린트 | `ruff check` — `E` · `F` · `W` · `I` · `B` · `UP` · `SIM` · `RUF` · `PGH` · `T20` · `BLE` · `TID` | ESLint — `typescript-eslint` strict(타입 정보 포함) · `jsx-a11y` · `react-hooks`, 경고 0 · 끄는 주석 무시 |
+| 구조 | `scripts/check_structure.py` | `scripts/check-structure.mjs` |
 | 타입 | `mypy --strict` | TypeScript `strict` · `noUncheckedIndexedAccess` |
 | 설정 | `backend/pyproject.toml` | `frontend/eslint.config.js` · `tsconfig.json` · `.prettierrc.json` |
 
-전부 `scripts/check.sh` 가 돌린다. 고친 파일은 Claude Code 훅(`.claude/hooks/format.sh`)이 바로 포맷하고, 커밋할 때 git 훅(`.githooks/pre-commit`)이 한 번 더 본다.
+전부 `scripts/check.sh` 가 돌린다. **어느 규칙을 어느 장치가 막는지는 [검사 장치](enforcement.md)에 있다** — 장치가 없는 규칙만 검토가 본다. 고친 파일은 Claude Code 훅(`.claude/hooks/format.sh`)이 바로 포맷하고, 커밋할 때 git 훅(`.githooks/pre-commit`)이 한 번 더 본다.
 
 ## 1. 공통
 

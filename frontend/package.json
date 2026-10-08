@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0 --no-inline-config",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
     "test": "vitest run"

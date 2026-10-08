@@ -32,8 +32,8 @@
   place-items: center;
   width: 32px;
   height: 32px;
-  color: #fff;
-  background: linear-gradient(135deg, #1e40af, #3b6fe0);
+  color: var(--on-point);
+  background: linear-gradient(135deg, var(--point), var(--logo-end));
   border-radius: 10px;
 }
 
@@ -127,7 +127,7 @@
   .mobileTabs button[aria-selected="true"] {
     font-weight: 600;
     color: var(--text-1);
-    background: #fff;
+    background: var(--card);
     box-shadow: var(--sh-1);
   }
 }

@@ -126,9 +126,9 @@ interface BarMarkProps {
   ratio: number;
 }
 
-/** 최댓값에 견준 막대. 그림이라 읽지 않는다. */
+/** 최댓값에 견준 막대. 그림이라 읽지 않는다. 길이는 데이터라 그림의 속성으로 준다(인라인 스타일을 쓰지 않는다). */
 const BarMark = ({ ratio }: BarMarkProps) => (
-  <span className={styles.bar} data-testid="bar" aria-hidden="true">
-    <i style={{ width: `${Math.round(ratio * 100)}%` }} />
-  </span>
+  <svg className={styles.bar} data-testid="bar" aria-hidden="true">
+    <rect width={`${Math.round(ratio * 100)}%`} height="100%" rx="3" />
+  </svg>
 );

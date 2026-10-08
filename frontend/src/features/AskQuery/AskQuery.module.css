@@ -59,7 +59,7 @@
   width: 128px;
   height: 52px;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-point);
   background: var(--point);
   border-radius: var(--r-sm);
 }
@@ -70,7 +70,7 @@
 
 /* 누르는 동안만 살짝 눌려 들어가고 더 진해진다. 크기 · 자리는 그대로라 옆 칸이 움직이지 않는다. */
 .submit:active:enabled {
-  background: #162c75;
+  background: var(--point-press);
   transform: scale(0.97);
 }
 
@@ -197,7 +197,7 @@
 .tab[aria-selected="true"] {
   font-weight: 600;
   color: var(--text-1);
-  background: #fff;
+  background: var(--card);
   box-shadow: var(--sh-1);
 }
 
@@ -217,7 +217,7 @@
   padding: 14px 16px;
   font-size: 14px;
   line-height: 1.5;
-  color: #8a2222;
+  color: var(--bad-text);
   background: var(--bad-soft);
   border-radius: var(--r-sm);
 }
