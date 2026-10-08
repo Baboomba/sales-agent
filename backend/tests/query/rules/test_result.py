@@ -32,3 +32,28 @@ def test_qry_r014_byte_values_become_binary_and_others_stay() -> None:
             truncated=True,
         )
     )
+
+
+def test_qry_r014_infinity_becomes_text_and_finite_floats_stay() -> None:
+    """QRY-R014 무한대 · 음의 무한대는 글로 바뀌고, 보통 실수는 그대로다 (이슈 #49).
+
+    무한대를 첫 · 끝 행에, 보통 실수(큰 값 · 음수)를 가운데에 둔다.
+    """
+    result = QueryResult(
+        columns=("a", "b"),
+        rows=(
+            (float("inf"), 1.5),
+            (-1e308, 3),
+            (0.25, float("-inf")),
+        ),
+    )
+    assert repr(sanitize(result)) == repr(
+        QueryResult(
+            columns=("a", "b"),
+            rows=(
+                ("Infinity", 1.5),
+                (-1e308, 3),
+                (0.25, "-Infinity"),
+            ),
+        )
+    )
