@@ -122,7 +122,7 @@ export default tseslint.config(
   },
   {
     // 도구 설정 파일과 CSS Modules 타입 선언만 기본 내보내기를 쓴다 (코드 컨벤션 3절).
-    files: ["vite.config.ts", "src/**/*.d.ts"],
+    files: ["vite.config.ts", "playwright.config.ts", "src/**/*.d.ts"],
     rules: syntax(BASE.filter((item) => item.selector !== "ExportDefaultDeclaration")),
   },
   {
@@ -174,6 +174,16 @@ export default tseslint.config(
             "목을 쓰지 않는다. 가짜는 src/api/__test__/fakeServer.ts 한 자리에 둔다 (테스트 규칙 7.1).",
         })),
       ],
+    },
+  },
+  {
+    // 끝단 테스트 — 가짜 모델 서버를 fetch 로 되돌리고, 스타일은 브라우저에서 잰다(테스트 규칙 7.2).
+    // 테스트의 흐름에 if · 반복을 넣지 않는 것은 같다.
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "no-restricted-globals": "off",
+      "no-restricted-imports": ["error", { patterns: [UP] }],
+      ...syntax(BASE, TEST_FLOW),
     },
   },
 );

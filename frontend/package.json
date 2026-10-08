@@ -11,9 +11,10 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint . --max-warnings 0 --no-inline-config",
-    "format": "prettier --write src",
-    "format:check": "prettier --check src",
-    "test": "vitest run"
+    "format": "prettier --write src e2e playwright.config.ts",
+    "format:check": "prettier --check src e2e playwright.config.ts",
+    "test": "vitest run",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "react": "^19.3.0",
@@ -21,9 +22,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.64.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.2",

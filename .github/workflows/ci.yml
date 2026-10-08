@@ -31,9 +31,37 @@ jobs:
       - name: 화면 검사 (린트 · 포맷 · 타입 · 테스트 · 빌드)
         run: scripts/check.sh frontend
 
+  # 끝단 테스트 — 화면 · 서버 · 시드 DB 를 띄우고 브라우저로 돈다. 모델은 가짜다 (NFR-005).
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: 화면 의존성
+        run: npm ci
+        working-directory: frontend
+      - name: 테스트 브라우저
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: 끝단 테스트
+        run: scripts/e2e.sh
+      - name: 실패하면 녹화 · 스크린샷 · 추적을 남긴다
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+
   # 검사를 통과한 커밋만 이미지가 된다. main 에 들어오면 GHCR 에 올린다.
   image:
-    needs: [backend, frontend]
+    needs: [backend, frontend, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: read

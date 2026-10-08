@@ -85,6 +85,7 @@ git clone -c core.symlinks=true https://github.com/Baboomba/sales-agent.git
 ```bash
 scripts/bootstrap.sh  # 클론 직후 개발 환경 갖추기
 scripts/check.sh      # 전체 검사 — CI 와 같다
+scripts/e2e.sh        # 끝단 테스트 — 화면 · 서버 · 시드 DB 를 띄우고 브라우저로 (모델은 가짜)
 scripts/test.sh       # 서버 테스트
 scripts/test-frontend.sh  # 화면 테스트
 scripts/mutate.sh     # 변이 테스트 — 테스트가 틀린 구현을 잡는지
