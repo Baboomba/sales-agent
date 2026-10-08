@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# git 자체의 훅. Claude Code · Codex · 사람 모두에게 걸린다.
+# 켜기: git config core.hooksPath .githooks
+#
+# 1. main 에 직접 커밋하지 못하게 막는다.
+# 2. 스테이징된 파일의 포맷을 검사한다. 편집 도구를 거치지 않고 고친 파일이
+#    포맷되지 않은 채 커밋되는 것을 막는다 (#19).
+set -uo pipefail
+
+root=$(git rev-parse --show-toplevel)
+
+block() {
+  echo "막힘: $1" >&2
+  echo "근거: AGENTS.md 「이슈와 분기 없이 커밋하지 않는다」 · 「검사를 우회하지 않는다」" >&2
+  exit 1
+}
+
+if [[ "$(git branch --show-current)" == "main" ]]; then
+  block "main 에 직접 커밋할 수 없다. <종류>/<이슈번호> 분기를 만든다."
+fi
+
+staged() {
+  git diff --cached --name-only --diff-filter=ACMR -- "$@"
+}
+
+# --- 서버 (ruff) ---------------------------------------------------------
+py_files=()
+while IFS= read -r f; do py_files+=("${f#backend/}"); done < <(staged 'backend/*.py')
+if (( ${#py_files[@]} )); then
+  if ! command -v uv >/dev/null; then
+    echo "경고: uv 가 없어 서버 포맷 검사를 건너뛴다." >&2
+  elif ! (cd "$root/backend" && uv run --quiet ruff format --check "${py_files[@]}" >/dev/null 2>&1 \
+         && uv run --quiet ruff check --quiet "${py_files[@]}" >/dev/null 2>&1); then
+    block "서버 파일의 포맷 · 린트가 맞지 않는다. backend 에서 'uv run ruff format' 과 'uv run ruff check --fix' 로 고친 뒤 다시 add 한다."
+  fi
+fi
+
+# --- 화면 (prettier) -----------------------------------------------------
+fe_files=()
+while IFS= read -r f; do fe_files+=("${f#frontend/}"); done \
+  < <(staged 'frontend/src/*.ts' 'frontend/src/*.tsx' 'frontend/src/*.css')
+if (( ${#fe_files[@]} )); then
+  if [[ ! -x "$root/frontend/node_modules/.bin/prettier" ]]; then
+    echo "경고: frontend 의존성이 없어 화면 포맷 검사를 건너뛴다 (npm ci)." >&2
+  elif ! (cd "$root/frontend" && node_modules/.bin/prettier --check "${fe_files[@]}" >/dev/null 2>&1); then
+    block "화면 파일의 포맷이 맞지 않는다. frontend 에서 'npm run format' 으로 고친 뒤 다시 add 한다."
+  fi
+fi
+
+exit 0
