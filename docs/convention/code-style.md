@@ -23,7 +23,7 @@
 ### 1.2 이름
 
 * 이름은 영어로, 뜻이 드러나게 짓는다. 줄임말을 쓰지 않는다 (`sql` · `id` 처럼 굳어진 것은 쓴다).
-* 업무 용어는 설계서의 용어와 한 단어씩 맞춘다: 생성 `generate`, 검증 `validate`, 실행 `execute`, 재생성의 사유 `feedback`, 실패 사유 `reason`, 시도 `attempt`.
+* 업무 용어는 설계서의 용어와 한 단어씩 맞춘다: 생성 `generate`, 판정 `judge`(실패 단계의 이름은 `VALIDATE`), 실행 `execute`, 사유 `reason`(재생성에 넘기는 직전 실패 사유도 같다), 시도 `attempt`, SQL 구성 `SqlShape`.
 
 ### 1.3 주석 · 문서 문자열
 
@@ -31,7 +31,7 @@
 * 규칙을 구현한 함수는 첫 줄에 설계서의 규칙 ID 를 적는다.
 
   ```python
-  def check_question(question: str) -> str | None:
+  def check_question(question: Question) -> str | None:
       """QRY-R001 질문이 받을 수 있는 모양인지 본다. 문제가 있으면 사유, 없으면 None."""
   ```
 
@@ -47,18 +47,19 @@
 
 ### 1.5 수와 상수
 
-* 상한 · 제한 시간 · 횟수는 코드에 박지 않는다. 설정(`config.Settings`)으로 받는다 — [코드 아키텍처](code-architecture.md) 5절.
+* 운영하며 바꾸는 상한 · 제한 시간 · 횟수(설계서의 설정 절)는 코드에 박지 않는다. 설정(`config.Settings`)으로 받는다 — [코드 아키텍처](code-architecture.md) 5절.
+* 요구사항 · 규칙이 정한 수(질문 300자 · 질문 하나 60초)는 그 규칙 모듈에 상수로 둔다 — [코드 아키텍처](code-architecture.md) 2.2.
 * 바뀌지 않는 값(정규식 · 금지 구문 목록 · 문구)은 모듈 위쪽에 대문자 상수로 둔다. 정규식은 모듈을 읽을 때 한 번 컴파일한다.
 
 ## 2. 서버 (Python 3.13)
 
 * **모든 모듈 첫 줄에 `from __future__ import annotations`.**
-* **모든 함수에 타입을 단다.** 반환이 없으면 `-> None`. `object` 는 정말 아무 값이나 받을 때만 쓴다(`sanitize_value`).
-* **값 객체는 `@dataclass(frozen=True)`.** 상태와 이벤트, 설정이 그렇다. 그래프 상태처럼 일부만 갱신하는 딕셔너리는 `TypedDict(total=False)`.
+* **모든 함수에 타입을 단다.** 반환이 없으면 `-> None`. `object` 는 정말 아무 값이나 받을 때만 쓴다(`_sanitize_value`).
+* **값 객체는 `@dataclass(frozen=True)`.** 모델과 설정이 그렇다. 유스케이스 안의 그래프 상태처럼 일부만 갱신하는 딕셔너리는 `TypedDict(total=False)`.
 * **인터페이스는 `typing.Protocol`.** 구현이 상속하지 않아도 된다(구조적 타입).
-* **헷갈릴 수 있는 인자는 키워드로만 받는다** — `validate_sql(sql, *, allowed_tables, row_limit)`.
-* **모듈 안에서만 쓰는 것은 `_` 로 시작한다** — `_single_statement` · `_route_to`. 다른 모듈에서 부르지 않는다.
-* **예외는 도메인 예외로 옮긴다.** 바깥 라이브러리의 예외를 잡아 `raise 도메인예외(...) from error` 로 원인을 이어 둔다. 사유가 필요한 예외는 `reason` 속성을 갖는다.
+* **헷갈릴 수 있는 인자는 키워드로만 받는다** — `judge(shape, *, allowed_tables, row_limit)`.
+* **모듈 안에서만 쓰는 것은 `_` 로 시작한다** — `_refuse_tables` · `_sanitize_value`. 다른 모듈에서 부르지 않는다.
+* **바깥의 예외는 의존성 구현 안에서 실패 모델로 옮겨 돌려준다.** 예외로 흐름을 끊지 않는다 ([코드 아키텍처](code-architecture.md) 4절). 열거로 갈래를 나눈 `match` 에서 값을 대입만 하는 갈래가 있으면 `case _: assert_never(...)` 를 둔다 — 열거 값이 늘면 mypy 가 잡는다.
 * **넓은 `except Exception` 은 안전망 한 곳에만 둔다** — 유스케이스의 입구 ([코드 아키텍처](code-architecture.md) 4절). 그 밖에서는 잡을 예외를 좁혀 쓴다.
 * **모델은 메서드 없는 `@dataclass(frozen=True)`** 다. 판단 · 계산을 모델에 두지 않는다 ([코드 아키텍처](code-architecture.md) 2.1).
 * **로그는 `logging.getLogger(__name__)`.** 버그로 보는 실패만 `logger.exception` 으로 남긴다. `print` 는 스크립트(`scripts/` · `evaluation/`)에서만 쓴다.

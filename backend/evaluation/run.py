@@ -19,10 +19,15 @@ from pathlib import Path
 import yaml
 
 from app.config import Settings
-from app.query.adapters.ollama import OllamaSqlGenerator
-from app.query.adapters.sqlite import SqliteSalesDatabase
-from app.query.graph import AgentSettings, SqlAgent
-from app.query.model import Done, Failed, Generated
+from app.main import query_limits
+from app.query.dependency.impl.ollama_client import ollama_complete
+from app.query.dependency.impl.ollama_generator import OllamaSqlGenerator
+from app.query.dependency.impl.sqlglot_analyzer import SqlglotAnalyzer
+from app.query.dependency.impl.sqlite_sales_database import SqliteSalesDatabase
+from app.query.model.question import Question
+from app.query.model.run import Completed, Failed, Generated
+from app.query.model.terms import TERMS
+from app.query.usecase.query_flow import QueryFlow
 
 HERE = Path(__file__).resolve().parent
 RESULTS_DIR = HERE / "results"
@@ -65,29 +70,31 @@ async def evaluate(model: str, settings: Settings) -> list[Outcome]:
     questions = yaml.safe_load((HERE / "questions.yaml").read_text(encoding="utf-8"))
     database = SqliteSalesDatabase(settings.db_path, timeout_seconds=settings.query_timeout_seconds)
     generator = OllamaSqlGenerator(
-        base_url=settings.ollama_base_url,
-        model=model,
-        timeout_seconds=settings.generation_timeout_seconds,
+        ollama_complete(
+            base_url=settings.ollama_base_url,
+            model=model,
+            timeout_seconds=settings.generation_timeout_seconds,
+        )
     )
-    agent = SqlAgent(
-        generator,
-        database,
-        AgentSettings(max_attempts=settings.max_attempts, row_limit=settings.row_limit),
-    )
+    flow = QueryFlow(generator, SqlglotAnalyzer(), database, TERMS, query_limits(settings))
     gold_conn = sqlite3.connect(f"file:{settings.db_path}?mode=ro", uri=True)
 
     outcomes = []
     for q in questions:
         gold = gold_conn.execute(q["sql"]).fetchall()
         started = time.perf_counter()
-        events = [e async for e in agent.stream(q["question"])]
+        steps = flow.start(Question(q["question"]))
+        if isinstance(steps, str):
+            raise ValueError(f"{q['id']} 질문이 입력 검증에 걸립니다: {steps}")
+        events = [e async for e in steps]
         seconds = time.perf_counter() - started
         attempts = max((e.attempt for e in events if isinstance(e, Generated)), default=0)
         last = events[-1]
         sql = next((e.sql for e in reversed(events) if isinstance(e, Generated)), "")
-        if isinstance(last, Done):
-            correct = matches(gold, list(last.rows), q["ordered"])
-            note = "" if correct else f"결과 불일치 (정답 {len(gold)}행, 결과 {len(last.rows)}행)"
+        if isinstance(last, Completed):
+            rows = list(last.result.rows)
+            correct = matches(gold, rows, q["ordered"])
+            note = "" if correct else f"결과 불일치 (정답 {len(gold)}행, 결과 {len(rows)}행)"
         else:
             correct = False
             note = last.reason if isinstance(last, Failed) else "끝나지 않음"

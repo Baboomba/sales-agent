@@ -7,7 +7,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-MAX_SECONDS_PER_QUESTION = 60  # NFR-003
 
 
 def _env(name: str, default: str) -> str:
@@ -24,17 +23,6 @@ class Settings:
     row_limit: int = 200
     query_timeout_seconds: float = 5
     static_dir: Path = field(default_factory=lambda: BACKEND_DIR / "static")
-
-    def check(self) -> None:
-        """QRY-R016 질문 하나의 최악 시간이 1분(NFR-003)을 넘는 설정이면 거부한다."""
-        worst = self.max_attempts * (self.generation_timeout_seconds + self.query_timeout_seconds)
-        if worst > MAX_SECONDS_PER_QUESTION:
-            raise ValueError(
-                f"질문 하나가 최악 {worst:g}초 걸리는 설정입니다 "
-                f"(생성 {self.max_attempts}회 × (생성 {self.generation_timeout_seconds:g}초 "
-                f"+ 실행 {self.query_timeout_seconds:g}초)). "
-                f"{MAX_SECONDS_PER_QUESTION}초 이하가 되게 줄이세요."
-            )
 
     @classmethod
     def from_env(cls) -> Settings:

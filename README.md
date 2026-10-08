@@ -59,8 +59,8 @@ stateDiagram-v2
 | 문서 | 내용 |
 |---|---|
 | [요구사항](docs/requirements.md) | 모든 설계의 근거 |
-| [아키텍처](docs/architecture.md) | 구성 · 포트와 어댑터 · 기술 선택과 버린 대안 |
-| [질의 설계서](docs/design/query.md) | 그래프 · 이벤트 · 규칙 18개(`QRY-R001`~) · 테스트 사항 |
+| [아키텍처](docs/architecture.md) | 구성 · 계층(모델 · 규칙 · 의존성 · 유스케이스 · API) · 기술 선택과 버린 대안 |
+| [질의 설계서](docs/design/query.md) | 질의 흐름 · 질의 단계 · 규칙 18개(`QRY-R001`~) · 테스트 사항 · 모델과 의존 |
 | [데이터 설계](docs/design/data.md) | 표 · 매출의 정의 |
 | [평가](docs/eval/README.md) | 평가 방법 · 모델 비교 · 틀린 문항 분석 |
 | [AI 에이전트 작업 체계](docs/agentic-workflow.md) | 컨텍스트 · 스킬 · 훅 · 검사 · 감사 워크플로우 |
@@ -73,7 +73,7 @@ stateDiagram-v2
 git config core.hooksPath .githooks
 ```
 
-**Windows 에서 받을 때.** 스킬은 `.agents/skills/` 에 있고, `.claude/skills/` 는 그 폴더를 가리키는 심볼릭 링크입니다. Windows 에서는 링크로 받으려면 git 설정이 필요합니다(개발자 모드 또는 관리자 권한도 필요할 수 있습니다).
+**Windows 에서 받을 때.** 스킬은 `.agents/skills/` 에 있고, `.claude/skills/<이름>` 은 스킬마다 그 폴더를 가리키는 심볼릭 링크입니다. Windows 에서는 링크로 받으려면 git 설정이 필요합니다(개발자 모드 또는 관리자 권한도 필요할 수 있습니다).
 
 ```bash
 git clone -c core.symlinks=true https://github.com/Baboomba/sales-agent.git
@@ -82,6 +82,7 @@ git clone -c core.symlinks=true https://github.com/Baboomba/sales-agent.git
 ```bash
 scripts/check.sh      # 전체 검사 — CI 와 같다
 scripts/test.sh       # 서버 테스트
+scripts/mutate.sh     # 변이 테스트 — 테스트가 틀린 구현을 잡는지
 scripts/eval.sh       # 평가 세트 (모델 서버 필요)
 scripts/dev.sh        # 개발 서버 (서버 8000 + 화면 5173)
 ```

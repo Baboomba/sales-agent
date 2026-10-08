@@ -26,7 +26,7 @@ const LENSES = [
   },
   {
     key: 'design-vs-code',
-    prompt: `docs/design/query.md 의 규칙(3절) · 흐름(2절) · 이벤트(2.4) · 설정(5절)과 backend/app/ 코드가 일치하는지 감사하라.
+    prompt: `docs/design/query.md 의 흐름(2.1) · 질의 단계(2.2) · 규칙(3절) · 모델과 의존(5.1 · 5.2) · 설정(5.3)과 backend/app/ 코드가 일치하는지 감사하라.
 설계서에 없는 동작이 코드에 있거나, 설계서의 규칙이 코드에서 다르게 구현된 곳을 찾아라.`,
   },
   {
@@ -37,7 +37,7 @@ const LENSES = [
   {
     key: 'security',
     prompt: `데이터를 바꾸는 SQL 이 실행될 수 있는 경로를 공격자 관점에서 찾아라 (NFR-001).
-backend/app/query/rules.py 의 검증을 우회할 SQL, 읽기 전용 연결을 벗어날 방법, 프롬프트 인젝션으로 내부 표를 노출시킬 방법을 시도하라.
+backend/app/query/rules/ 의 판정(QRY-R002 ~ QRY-R005)과 SQL 분석기를 우회할 SQL, 읽기 전용 연결을 벗어날 방법, 프롬프트 인젝션으로 내부 표를 노출시킬 방법을 시도하라.
 추측이 아니라 실제로 통과할 SQL 문자열을 근거로 내라.`,
   },
 ]

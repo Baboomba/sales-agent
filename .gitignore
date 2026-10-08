@@ -11,6 +11,9 @@ __pycache__/
 frontend/dist/
 backend/static/
 
+# 변이 테스트가 만드는 사본 (scripts/mutate.sh)
+backend/mutants/
+
 # 시드로 만드는 DB (docs/design/data.md)
 backend/data/
 

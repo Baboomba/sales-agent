@@ -22,6 +22,7 @@ dev = [
     "import-linter>=2.15",
     "pyyaml>=6.0",
     "types-pyyaml>=6.0",
+    "mutmut>=3.8",
 ]
 
 [tool.uv]
@@ -50,33 +51,62 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = ["integration: 실제 SQLite 파일로 확인한다"]
 
+# 변이 테스트 — 테스트가 틀린 구현을 잡는지 기계로 확인한다 (docs/convention/review.md 2절).
+# 판단이 있는 계층만 바꿔 본다. 계층이 생기면 여기에 더한다.
+[tool.mutmut]
+source_paths = [
+    "app/query/rules/",
+    "app/query/dependency/impl/sqlglot_analyzer.py",
+    "app/query/dependency/impl/sqlite_sales_database.py",
+    "app/query/dependency/impl/ollama_generator.py",
+    "app/query/usecase/",
+    "app/query/api/",
+    "app/main.py",
+    "app/config.py",
+]
+also_copy = ["app/"]
+pytest_add_cli_args_test_selection = ["tests/query/", "tests/integration/test_sqlite_sales_database.py", "tests/integration/test_main_wiring.py", "tests/test_main.py", "tests/test_config.py"]
+
 # 의존 방향을 사람이 아니라 검사가 지킨다 (docs/architecture.md 2절).
 [tool.importlinter]
 root_package = "app"
 include_external_packages = true
 
+# 계약은 docs/convention/code-architecture.md 3절의 표와 같다.
 [[tool.importlinter.contracts]]
-name = "질의 도메인 계층 — 안쪽으로만 의존한다"
+name = "계층 — api → usecase → rules · dependency → model 로만 의존한다"
 type = "layers"
 layers = [
     "app.query.api",
-    "app.query.graph",
-    "app.query.prompt | app.query.rules",
-    "app.query.ports",
+    "app.query.usecase",
+    "app.query.rules | app.query.dependency",
     "app.query.model",
 ]
 containers = []
 exhaustive = false
 
 [[tool.importlinter.contracts]]
-name = "순수 계층은 프레임워크와 어댑터를 모른다"
+name = "모델은 아무것도 모른다"
 type = "forbidden"
-source_modules = ["app.query.model", "app.query.rules", "app.query.prompt", "app.query.ports"]
-forbidden_modules = ["fastapi", "langgraph", "langchain_ollama", "langchain_core", "app.query.adapters", "app.main"]
-allow_indirect_imports = true
+source_modules = ["app.query.model"]
+forbidden_modules = ["app.query.rules", "app.query.dependency", "app.query.usecase", "app.query.api", "app.config", "app.main", "fastapi", "pydantic", "langgraph", "langchain_ollama", "langchain_core", "ollama", "httpx", "sqlglot"]
 
 [[tool.importlinter.contracts]]
-name = "어댑터는 조립 루트만 안다"
+name = "규칙은 모델과 규칙만 안다"
 type = "forbidden"
-source_modules = ["app.query.api", "app.query.graph"]
-forbidden_modules = ["app.query.adapters", "langchain_ollama"]
+source_modules = ["app.query.rules"]
+forbidden_modules = ["app.query.dependency", "app.query.usecase", "app.query.api", "app.config", "app.main", "fastapi", "pydantic", "langgraph", "langchain_ollama", "langchain_core", "ollama", "httpx", "sqlglot"]
+
+[[tool.importlinter.contracts]]
+name = "구현은 조립 루트만 안다"
+type = "forbidden"
+source_modules = ["app.query.api", "app.query.usecase", "app.query.rules", "app.query.model"]
+forbidden_modules = ["app.query.dependency.impl", "app.main"]
+
+[[tool.importlinter.contracts]]
+name = "API 는 유스케이스만 부른다"
+type = "forbidden"
+source_modules = ["app.query.api"]
+forbidden_modules = ["app.query.rules", "app.query.dependency"]
+# 유스케이스를 거쳐 닿는 것은 된다 — 직접 부르는 것만 막는다.
+allow_indirect_imports = true

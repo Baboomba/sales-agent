@@ -59,6 +59,7 @@
 * 코드는 `docs/design/` 의 설계서를 따른다. 설계서는 `docs/requirements.md` 의 요구사항을 충족해야 한다. 요구사항에 없는 기능을 설계서에 넣지 않는다.
 * **설계서가 정본이다.** 설계서에 없는 동작을 코드에 넣지 않는다. 필요하면 설계서를 먼저 고치고(사용자 확인) 그다음 구현한다. 설계서 작업은 `design` 스킬이 소유한다.
 * 규칙에는 ID 가 있다(`QRY-R001` …). 규칙을 더하면 4절 테스트 사항도 함께 더한다.
+* **설계서가 없는 영역**(`scripts/` · 훅 · 설정 같은 장치, 화면 설계서가 생기기 전의 화면)은 **이슈 본문이 근거다** — `implement` 스킬 1단계.
 
 ### 검사를 우회하지 않는다
 
@@ -67,6 +68,15 @@
 * 계층 경계(`import-linter`)를 피하려고 import 를 함수 안으로 숨기지 않는다.
 * **파일은 편집 도구로 고친다.** 셸 스크립트로 고치면 Claude Code 의 포맷 훅(`.claude/hooks/format.sh`)을 거치지 않는다. 그렇게 고쳤다면 커밋 전에 `scripts/check.sh` 를 돌리고 작업 트리가 깨끗한지 본다 (#19 에서 포맷되지 않은 파일이 병합됐다). git 훅(`pre-commit`)을 켜 두면 포맷 안 된 파일은 커밋되지 않는다.
 * `--no-verify` 로 git 훅을 건너뛰지 않는다.
+
+### 확인하지 않은 것을 말하지 않고, 검사에 떠넘기지 않는다
+
+검사를 돌릴 때마다 지적이 끝없이 나온 일이 있었다(#40). 처음 만든 것을 스스로 확인하지 않고 넘겼고, 확인하지 않은 말을 했고, 다시 검사에 범위 전체를 넘겼기 때문이다. 정본은 [검사 운영 규칙](docs/convention/review.md)이다.
+
+* **실행해서 본 것만 말한다.** 「도구가 잡는다」 「이렇게 동작한다」 「통과한다」는 실행 결과가 있을 때만 말한다.
+* **검사를 맡기기 전에 스스로 확인한다.** 새로 쓰거나 고친 테스트 줄마다 테스트 규칙 4절을 대조하고, 구현 뒤에는 `scripts/mutate.sh` 로 살아남은 변이가 문구 · `assert_never` 갈래 · 동치 변이(테스트 규칙 10절)뿐인지 본다. 옛 코드에서 옮긴 동작은 설계서 문장과 하나씩 대조한다.
+* **다시 검사는 고친 줄만 본다** (`scripts/review-scope.sh`). 지적은 심각도 상 · 중만 고치고 하는 기록만 한다. **이번 차례가 만들거나 건드린 것만 차례를 막고**, 옛 코드에서 넘어온 결함은 이슈로 뺀다. **검사는 자리마다 1번 + 다시 검사 1번으로 끝난다** — 그 뒤 남은 것은 보고하고 승인으로 넘어간다. 무작위 탐색(우회 찾기)은 차례 검사가 아니라 보안 감사의 일이다. **검사자는 보고 전에 과도한 지적을 거른다** — 실제로 일어날 법하지 않거나 문제가 아닌 것은 보고하지 않는다(`review.md` 4.1).
+* **판단은 이슈의 「판단 기록」 댓글에 남긴다.** 미룬 것을 잊지 않고, 다음 검사가 같은 것을 다시 꺼내지 않게 한다.
 
 ## 언어 정책
 
@@ -108,6 +118,8 @@
 |---|---|
 | 전체 검사 (CI 와 같다) | `scripts/check.sh` |
 | 서버 테스트 | `scripts/test.sh` |
+| 변이 테스트 (테스트가 틀린 구현을 잡는지) | `scripts/mutate.sh` |
+| 다시 검사의 범위 (기준점 남기기 · 바뀐 것 보기) | `scripts/review-scope.sh mark` · `diff` |
 | 평가 세트 실행 | `scripts/eval.sh [모델 ...]` |
 | 개발 서버 | `scripts/dev.sh` |
 
@@ -121,13 +133,14 @@
 | 코드 컨벤션 (작성 규칙 · 도구) | `docs/convention/code-style.md` |
 | 테스트 규칙 (판정 기준 · 계층마다 볼 것 · 규칙 ID) | `docs/convention/testing.md` |
 | 리팩토링 규칙 (검사 항목 여섯 · 가르기) | `docs/convention/refactoring.md` |
+| 검사 운영 규칙 (자기 확인 · 다시 검사의 범위 · 심각도 · 멈추는 기준 · 판단 기록) | `docs/convention/review.md` |
 | 질의 도메인 설계 (규칙 ID · 테스트 사항) | `docs/design/query.md` |
 | 데이터 설계 | `docs/design/data.md` |
 | 평가 방법과 모델 선정 결과 | `docs/eval/README.md` |
 | AI 에이전트 작업 체계 | `docs/agentic-workflow.md` |
 | 협업 규칙 (작업 흐름 · 커밋 · 라벨 · 서식) | `README.md` 「협업 규칙」 |
 | 경로별 규칙 | `.claude/rules/` — 아래 「코드를 쓰기 전에」 |
-| 스킬 | `.agents/skills/` — `design` · `implement` · `test-review` · `refactor-review` · `eval`. `.claude/skills/` 는 같은 폴더를 가리키는 링크다 |
+| 스킬 | `.agents/skills/` — `design` · `implement` · `test-review` · `refactor-review` · `eval`. `.claude/skills/<이름>` 은 스킬마다 하나씩 둔 링크다 — 스킬을 새로 만들면 링크도 하나 더 만든다 (`ln -s ../../.agents/skills/<이름> .claude/skills/<이름>`) |
 | git 훅 (모든 에이전트 · 사람) | `.githooks/` |
 | Claude Code 훅 | `.claude/settings.json` · `.claude/hooks/` |
 | 감사 워크플로우 (Claude Code 전용) | `.claude/workflows/audit.js` |
