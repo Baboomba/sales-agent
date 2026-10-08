@@ -57,7 +57,7 @@ def test_qry_r002_unclosed_quote_is_rejected() -> None:
 
 def test_qry_r002_trailing_semicolon_is_one_statement() -> None:
     """QRY-R002 끝에 붙은 세미콜론 하나는 한 문장이다."""
-    assert validate("SELECT store_id FROM stores;").startswith("SELECT")
+    assert validate("SELECT store_id FROM stores;") == "SELECT store_id FROM stores LIMIT 201"
 
 
 # --- QRY-R003 조회문만 ----------------------------------------------------
@@ -90,11 +90,13 @@ def test_qry_r003_write_inside_cte_is_rejected() -> None:
 def test_qry_r003_with_select_is_allowed() -> None:
     """QRY-R003 WITH ... SELECT 조회는 허용한다."""
     sql = "WITH s AS (SELECT store_id FROM stores) SELECT store_id FROM s"
-    assert "SELECT" in validate(sql)
+    assert validate(sql) == (
+        "WITH s AS (SELECT store_id FROM stores) SELECT store_id FROM s LIMIT 201"
+    )
 
 
-def test_qry_r003_syntax_error_is_rejected_with_reason() -> None:
-    """QRY-R003 구문이 깨진 SQL 은 사유를 붙여 거부한다."""
+def test_qry_r002_syntax_error_is_rejected_with_reason() -> None:
+    """QRY-R002 구문이 깨진 SQL 은 사유를 붙여 거부한다."""
     assert "구문" in reason_of("SELEC store_id FROM stores")
 
 
@@ -109,12 +111,12 @@ def test_qry_r004_internal_table_is_rejected() -> None:
 def test_qry_r004_cte_name_counts_as_allowed() -> None:
     """QRY-R004 CTE 로 만든 이름은 허용된 표로 친다."""
     sql = "WITH top AS (SELECT store_id FROM orders) SELECT * FROM top"
-    assert "top" in validate(sql)
+    assert validate(sql) == "WITH top AS (SELECT store_id FROM orders) SELECT * FROM top LIMIT 201"
 
 
 def test_qry_r004_table_names_are_case_insensitive() -> None:
     """QRY-R004 표 이름의 대소문자는 가리지 않는다."""
-    assert "FROM" in validate("SELECT * FROM Stores")
+    assert validate("SELECT * FROM Stores") == "SELECT * FROM Stores LIMIT 201"
 
 
 @pytest.mark.parametrize(

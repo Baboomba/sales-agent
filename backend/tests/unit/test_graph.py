@@ -5,6 +5,7 @@ from __future__ import annotations
 from app.query.graph import AgentSettings, SqlAgent
 from app.query.model import Done, Event, Failed, Generated, QueryResult, Rejected, Validated
 from app.query.ports import ExecutionError, GeneratorUnavailable
+from app.query.rules import explain_execution_error
 from tests.fakes import FakeDatabase, ScriptedGenerator, sql_json
 
 SETTINGS = AgentSettings(max_attempts=3, row_limit=200)
@@ -98,8 +99,8 @@ async def test_qry_r007_gives_up_after_max_attempts_with_last_reason() -> None:
     assert sum(isinstance(e, Failed) for e in events) == 1
 
 
-async def test_qry_r007_attempt_numbers_increase() -> None:
-    """QRY-R007 이벤트의 시도 번호는 1 부터 올라간다."""
+async def test_qry_r012_attempt_numbers_increase() -> None:
+    """QRY-R012 이벤트의 시도 번호는 1 부터 올라간다 (설계서 2.4)."""
     generator = ScriptedGenerator([sql_json("DELETE FROM orders"), sql_json(GOOD_SQL)])
     events = await collect(SqlAgent(generator, FakeDatabase(), SETTINGS))
     attempts = [e.attempt for e in events if isinstance(e, Generated | Rejected)]
@@ -197,5 +198,6 @@ async def test_qry_r015_retry_prompt_carries_join_hint() -> None:
     database = FakeDatabase(results={bad: ExecutionError("no such column: o.ordered_on")})
     generator = ScriptedGenerator([sql_json(bad), sql_json(GOOD_SQL)])
     await collect(SqlAgent(generator, database, SETTINGS))
-    assert "'o'" in generator.prompts[1]
-    assert "JOIN" in generator.prompts[1]
+    hint = explain_execution_error("no such column: o.ordered_on")
+    assert hint in generator.prompts[1]
+    assert hint not in generator.prompts[0]
