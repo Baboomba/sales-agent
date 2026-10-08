@@ -138,7 +138,7 @@
 | AI 에이전트 작업 체계 | `docs/agentic-workflow.md` |
 | 협업 규칙 (작업 흐름 · 커밋 · 라벨 · 서식) | `README.md` 「협업 규칙」 |
 | 경로별 규칙 | `.claude/rules/` — 아래 「코드를 쓰기 전에」 |
-| 스킬 | `.agents/skills/` — `design` · `implement` · `test-review` · `refactor-review` · `eval`. `.claude/skills/<이름>` 은 스킬마다 하나씩 둔 링크다 — 스킬을 새로 만들면 링크도 하나 더 만든다 (`ln -s ../../.agents/skills/<이름> .claude/skills/<이름>`) |
+| 스킬 | `.agents/skills/` — `bootstrap` · `design` · `implement` · `test-review` · `refactor-review` · `eval`. `.claude/skills/<이름>` 은 스킬마다 하나씩 둔 링크다 — 스킬을 새로 만들면 링크도 하나 더 만든다 (`ln -s ../../.agents/skills/<이름> .claude/skills/<이름>`) |
 | git 훅 (모든 에이전트 · 사람) | `.githooks/` |
 | Claude Code 훅 | `.claude/settings.json` · `.claude/hooks/` |
 | 감사 워크플로우 (Claude Code 전용) | `.claude/workflows/audit.js` |

@@ -57,7 +57,7 @@
 |---|---|
 | 본 가지에 직접 커밋 · 올리기 금지, `--no-verify` 금지 | `.claude/hooks/guard-git.sh`(에이전트), `.githooks/pre-commit` · `pre-push`(사람) |
 | 고친 파일은 바로 포맷 | `.claude/hooks/format.sh` |
-| git 훅이 켜져 있다 | `scripts/check.sh` 가 꺼져 있으면 알린다. 켜는 일은 부트스트랩(#75)이 한다 |
+| git 훅이 켜져 있다 | `scripts/bootstrap.sh` 가 켠다. `scripts/check.sh` 가 꺼져 있으면 알린다 |
 
 ## 4. 장치가 없는 규칙 — 검토가 본다
 

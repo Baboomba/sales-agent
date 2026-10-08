@@ -67,11 +67,14 @@ stateDiagram-v2
 
 ## 개발
 
-저장소를 받으면 git 훅을 한 번 켭니다. `main` 직접 커밋 · 푸시와 포맷 안 된 파일의 커밋을 막습니다. 사람과 Claude Code · Codex 모두에게 걸립니다.
+저장소를 받으면 부트스트랩을 한 번 돌립니다. 준비물(git · uv · Node 24 · 도커 또는 Ollama)만 있으면 나머지는 스크립트가 갖춥니다 — git 훅 켜기, 서버 · 화면 의존성, 시드 데이터, 모델 서버와 모델(약 1GB), 마지막 전체 검사. 여러 번 돌려도 결과가 같습니다. 에이전트에게는 「처음 세팅해줘」라고 하면 `bootstrap` 스킬이 같은 스크립트를 돌립니다.
 
 ```bash
-git config core.hooksPath .githooks
+scripts/bootstrap.sh              # 모두
+scripts/bootstrap.sh --no-model   # 모델을 받지 않는다
 ```
+
+git 훅은 `main` 직접 커밋 · 푸시와 포맷 안 된 파일의 커밋을 막습니다. 사람과 Claude Code · Codex 모두에게 걸립니다.
 
 **Windows 에서 받을 때.** 스킬은 `.agents/skills/` 에 있고, `.claude/skills/<이름>` 은 스킬마다 그 폴더를 가리키는 심볼릭 링크입니다. Windows 에서는 링크로 받으려면 git 설정이 필요합니다(개발자 모드 또는 관리자 권한도 필요할 수 있습니다).
 
@@ -80,6 +83,7 @@ git clone -c core.symlinks=true https://github.com/Baboomba/sales-agent.git
 ```
 
 ```bash
+scripts/bootstrap.sh  # 클론 직후 개발 환경 갖추기
 scripts/check.sh      # 전체 검사 — CI 와 같다
 scripts/test.sh       # 서버 테스트
 scripts/test-frontend.sh  # 화면 테스트
