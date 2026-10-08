@@ -115,6 +115,24 @@ async def test_qry_r013_unreachable_generator_fails_without_retry() -> None:
     assert kinds(events) == ["failed"]
 
 
+async def test_qry_r002_unclosed_quote_is_regenerated() -> None:
+    """QRY-R002 닫히지 않은 따옴표는 검증 거부로 다뤄 다시 생성한다. 스트림이 끊기지 않는다."""
+    generator = ScriptedGenerator([sql_json("SELECT 'abc"), sql_json(GOOD_SQL)])
+    events = await collect(SqlAgent(generator, FakeDatabase(), SETTINGS))
+    assert kinds(events) == ["generated", "rejected", "generated", "validated", "done"]
+
+
+class ExplodingGenerator:
+    async def generate(self, prompt: str) -> str:
+        raise RuntimeError("예상하지 못한 오류")
+
+
+async def test_qry_r012_unexpected_error_ends_with_failed() -> None:
+    """QRY-R012 예상하지 못한 예외도 그래프 밖으로 새지 않고 마지막이 failed 다."""
+    events = await collect(SqlAgent(ExplodingGenerator(), FakeDatabase(), SETTINGS))
+    assert kinds(events) == ["failed"]
+
+
 async def test_qry_r005_validated_sql_is_what_gets_executed() -> None:
     """QRY-R005 실행되는 SQL 은 LIMIT 을 보정한 SQL 이다."""
     database = FakeDatabase()
