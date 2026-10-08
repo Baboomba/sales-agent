@@ -54,8 +54,11 @@ class SqlglotAnalyzer:
                 node.key.upper() for node in statement.walk() if isinstance(node, _FORBIDDEN_NODES)
             ),
             # CTE 이름과 같은 참조 · CTE 몸체 안의 표도 모두 담는다. CTE 인지 가르는 것은 규칙이다.
-            tables=tuple(_table_ref(table) for table in statement.find_all(exp.Table)),
-            cte_names=tuple(cte.alias_or_name for cte in statement.find_all(exp.CTE)),
+            tables=(
+                *(_table_ref(table) for table in statement.find_all(exp.Table)),
+                *(ref for node in statement.find_all(exp.In) if (ref := _in_ref(node))),
+            ),
+            cte_names=_outer_cte_names(statement),
             outer_limit=_outer_limit(statement),
         )
 
@@ -71,7 +74,12 @@ def _statements(sql: str) -> list[exp.Expr]:
 
     분석과 행 상한 붙이기가 같은 읽기를 써야, 판정을 통과한 SQL 을 붙이기가 다르게 읽지 않는다.
     """
-    return [statement for statement in sqlglot.parse(sql, read=_DIALECT) if statement is not None]
+    # 끝 세미콜론에 주석이 붙으면 sqlglot 이 주석만 든 Semicolon 노드를 따로 낸다 (#46).
+    return [
+        statement
+        for statement in sqlglot.parse(sql, read=_DIALECT)
+        if statement is not None and not isinstance(statement, exp.Semicolon)
+    ]
 
 
 def _shape_without_statement(*, parse_error: str | None, statement_count: int) -> SqlShape:
@@ -95,12 +103,51 @@ def _table_ref(table: exp.Table) -> TableRef:
     return TableRef(name=table.name, qualifier=_qualifier(table))
 
 
+def _in_ref(node: exp.In) -> TableRef | None:
+    """`IN 표이름` · `IN 표 값 함수()` 의 참조 (#46). 값 목록 · 하위 조회는 None.
+
+    sqlglot 은 이 자리의 표 이름을 열(`main.x` 면 표 자리에 `main` 이 든 열)로, 함수를 일반
+    함수로, 한정자가 붙은 함수(`main.f()`)를 Dot 으로 읽는다. 하위 조회 안의 표는 Table 노드로
+    따로 잡힌다.
+    """
+    field = node.args.get("field")
+    if isinstance(field, exp.Column):
+        qualifier = _schema_qualifier(field.table, has_catalog=field.args.get("db") is not None)
+        return TableRef(name=field.name, qualifier=qualifier)
+    if isinstance(field, exp.Func):
+        return TableRef(name=field.name, is_function=True)
+    if isinstance(field, exp.Dot) and isinstance(field.expression, exp.Func):
+        schema = field.this
+        if isinstance(schema, exp.Identifier):
+            qualifier = _schema_qualifier(schema.name, has_catalog=False)
+        else:
+            qualifier = Qualifier.OTHER_SCHEMA  # `카탈로그.스키마.f()`
+        return TableRef(name=field.expression.name, qualifier=qualifier, is_function=True)
+    return None
+
+
+def _outer_cte_names(statement: exp.Expr) -> tuple[str, ...]:
+    """맨 바깥 WITH 의 CTE 이름 (설계서 5.1).
+
+    하위 질의 안의 CTE 는 바깥 이름을 가리지 못한다 (#46).
+    """
+    with_ = statement.args.get("with_")
+    if not isinstance(with_, exp.With):
+        return ()
+    return tuple(cte.alias_or_name for cte in with_.expressions)
+
+
 def _qualifier(table: exp.Table) -> Qualifier:
-    if table.catalog:
+    return _schema_qualifier(table.db, has_catalog=bool(table.catalog))
+
+
+def _schema_qualifier(schema: str, *, has_catalog: bool) -> Qualifier:
+    """한정자를 한정자 종류로 옮긴다. 어느 이름이 기본 스키마인지는 SQLite 방언이다."""
+    if has_catalog:
         return Qualifier.OTHER_SCHEMA
-    if not table.db:
+    if not schema:
         return Qualifier.NONE
-    if table.db.lower() == _DEFAULT_SCHEMA:
+    if schema.lower() == _DEFAULT_SCHEMA:
         return Qualifier.DEFAULT_SCHEMA
     return Qualifier.OTHER_SCHEMA
 
