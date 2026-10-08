@@ -5,6 +5,9 @@ import type { QueryEvent } from "@/api/types/query";
 /** 질문 길이 상한 (QRY-R001). 입력칸이 이보다 길게 받지 않는다. */
 export const QUESTION_MAX_LENGTH = 300;
 
+/** 응답이 이보다 늦을 때만 진행 표시를 보인다. 빠른 응답에 진행 표시가 번쩍이지 않게 (#63). */
+export const PENDING_DELAY_MS = 300;
+
 export type SqlEvent = Extract<QueryEvent, { type: "generated" | "validated" }>;
 export type DoneEvent = Extract<QueryEvent, { type: "done" }>;
 

@@ -48,6 +48,28 @@ describe("useAskQuery", () => {
     expect(result.current.events).toEqual([{ type: "failed", reason: "zzz 둘째 사유" }]);
   });
 
+  it("새로 물어도 첫 단계가 올 때까지는 앞 단계를 두고, 늦으면 그때 지우고 진행 중을 알린다 (#63)", async () => {
+    install({
+      "/api/queries": [{ sse: sse(["failed", { reason: "zzz 앞 사유" }]) }, { hang: true }],
+    });
+    const { result } = renderHook(() => useAskQuery());
+    await act(() => result.current.ask("zzz 첫 질문"));
+
+    let asking: Promise<void> = Promise.resolve();
+    act(() => {
+      asking = result.current.ask("zzz 둘째 질문");
+    });
+
+    expect(result.current.events).toEqual([{ type: "failed", reason: "zzz 앞 사유" }]);
+    expect(result.current.pending).toBe(false);
+    await waitFor(() => expect(result.current.pending).toBe(true));
+    expect(result.current.events).toEqual([]);
+
+    act(() => result.current.stop());
+    await act(() => asking);
+    expect(result.current.pending).toBe(false);
+  });
+
   it("진행 중에 다시 물으면 보내지 않는다", async () => {
     const server = install({ "/api/queries": [{ hang: true }, { sse: sse(["failed", FAILED]) }] });
     const { result } = renderHook(() => useAskQuery());

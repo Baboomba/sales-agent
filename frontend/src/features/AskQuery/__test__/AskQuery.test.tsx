@@ -92,6 +92,33 @@ describe("AskQuery", () => {
     });
   });
 
+  it("응답이 늦으면 첫 단계가 오기 전에도 진행 칸과 진행 중 · 중지가 보인다 (#63)", async () => {
+    install({
+      "/api/examples": [{ json: { questions: ["zzz 예시"] } }],
+      "/api/queries": [{ hang: true }],
+    });
+    render(<AskQuery />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "zzz 예시" }));
+
+    expect(await screen.findByRole("heading", { name: "진행" })).toBeInTheDocument();
+    expect(screen.getByText("진행 중…")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "중지" }));
+  });
+
+  it("묻는 동안에도 질문하기 단추를 끄지 않는다 — 빠른 응답에 단추가 깜빡이지 않게 (#63)", async () => {
+    install({
+      "/api/examples": [{ json: { questions: ["zzz 예시"] } }],
+      "/api/queries": [{ hang: true }],
+    });
+    render(<AskQuery />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "zzz 예시" }));
+
+    expect(screen.getByRole("button", { name: "질문하기" })).toBeEnabled();
+    fireEvent.click(await screen.findByRole("button", { name: "중지" }));
+  });
+
   it("입력칸은 300자까지만 받는다 (QRY-R001)", async () => {
     install({ "/api/examples": [{ json: { questions: [] } }] });
     render(<AskQuery />);
