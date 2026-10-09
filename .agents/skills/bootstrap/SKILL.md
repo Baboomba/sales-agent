@@ -45,7 +45,7 @@ scripts/bootstrap.sh --no-check   # 마지막 전체 검사를 건너뛴다
 * 어디까지 됐는지 — 단계마다 ✔ · ⚠
 * 모델 서버를 무엇으로 띄웠는지 (이미 떠 있음 · 이 컴퓨터의 Ollama · 도커) — 도커면 GPU 없이 CPU 라 느리다고 알린다
 * ⚠ 가 있으면 그 줄을 그대로 알린다 (모델을 받지 않음 · 스킬 링크 끊김 등)
-* 다음 할 일: `scripts/dev.sh`(화면 http://localhost:5173) · `scripts/check.sh` · `scripts/eval.sh`
+* 다음 할 일: `scripts/serve.sh`(`serve` 스킬 — 화면 http://localhost:5173) · `scripts/check.sh` · `scripts/eval.sh`
 
 ## 3. 자주 겪는 문제
 

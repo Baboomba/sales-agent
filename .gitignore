@@ -26,3 +26,6 @@ backend/evaluation/results/
 
 .DS_Store
 .env
+
+# 서버 실행 기록 (scripts/serve.sh)
+.run/
