@@ -92,6 +92,7 @@ scripts/mutate.sh     # 변이 테스트 — 테스트가 틀린 구현을 잡�
 scripts/eval.sh       # 평가 세트 (모델 서버 필요)
 scripts/serve.sh      # 서버를 뒤에서 띄워 브라우저로 본다 (--open · --status · --stop)
 scripts/dev.sh        # 개발 서버를 앞에서 (서버 8000 + 화면 5173)
+scripts/clean.sh      # 소스 코드 밖의 것을 모두 지운다 — 먼저 목록만, --yes 로 지움
 ```
 
 | 영역 | 스택 |
