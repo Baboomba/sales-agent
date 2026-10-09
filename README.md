@@ -90,7 +90,8 @@ scripts/test.sh       # 서버 테스트
 scripts/test-frontend.sh  # 화면 테스트
 scripts/mutate.sh     # 변이 테스트 — 테스트가 틀린 구현을 잡는지
 scripts/eval.sh       # 평가 세트 (모델 서버 필요)
-scripts/dev.sh        # 개발 서버 (서버 8000 + 화면 5173)
+scripts/serve.sh      # 서버를 뒤에서 띄워 브라우저로 본다 (--open · --status · --stop)
+scripts/dev.sh        # 개발 서버를 앞에서 (서버 8000 + 화면 5173)
 ```
 
 | 영역 | 스택 |
